@@ -1,0 +1,360 @@
+@import "tailwindcss";
+
+@theme {
+  --color-ground: #020308;
+  --color-surface: #080a11;
+  --color-raised: #0e111a;
+  --color-overlay: #161a25;
+
+  --color-hairline: #1b202b;
+  --color-hairline-soft: #12151d;
+
+  --color-ink: #e8ebf4;
+  --color-muted: #8b93a7;
+  --color-faint: #5c6478;
+
+  /* The foil is the accent — figures, bars, links, focus. The mark's orange is
+     the logo and nothing else, never data. */
+  --color-holo: #a5f7f2;
+  --color-holo-ink: #0f1114;
+  --color-mark: #fc5416;
+
+  /* Blue takes side A, crimson takes side B, everywhere, always. */
+  --color-side-a: #5b8cff;
+  --color-side-b: #ff4d6d;
+
+  --color-open: #5b8cff;
+  --color-resolved: #2fd48a;
+  --color-invalid: #8b93a7;
+
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, "Helvetica Neue",
+    Helvetica, Arial, sans-serif;
+  --font-mono: var(--font-mono-code), ui-monospace, Menlo, Consolas, monospace;
+}
+
+/* Ported from ringo-marketing so both surfaces read as the same product.
+   Colour sits at the edges against a near-white core: that local contrast is
+   what reads as pearl, evenly spread stops read as a rainbow. */
+:root {
+  --gradient-holo:
+    radial-gradient(at 30% -5%, #90f1f1, #d3ccf0, rgba(255, 255, 255, 0) 25%),
+    radial-gradient(at 30% 40%, #aad1f0, rgba(255, 255, 255, 0) 20%),
+    radial-gradient(at 50% 70%, #c4f2e5, rgba(255, 255, 255, 0) 30%),
+    radial-gradient(at 70% 0%, #d3ccf0, rgba(255, 255, 255, 0) 20%),
+    linear-gradient(
+      75deg,
+      #90f1f1 5%,
+      rgba(255, 255, 255, 0),
+      #aad1f0,
+      rgba(255, 255, 255, 0),
+      #e9d0ed,
+      rgba(255, 255, 255, 0),
+      #d3ccf0,
+      rgba(255, 255, 255, 0),
+      #c4f2e5 90%
+    ),
+    radial-gradient(at 30% 50%, #9cb9fc, rgba(255, 255, 255, 0) 30%),
+    radial-gradient(at 100% 50%, #90f1f1, #c2dcf2, rgba(255, 255, 255, 0) 50%);
+
+  --gradient-holo-text: linear-gradient(
+    100deg,
+    #a8ecec 0%,
+    #eef4f9 30%,
+    #ffffff 50%,
+    #f0e8f6 72%,
+    #cfe6f7 100%
+  );
+
+  --gradient-holo-line: linear-gradient(
+    90deg,
+    transparent,
+    #90f1f1,
+    #d3ccf0 45%,
+    #aad1f0 72%,
+    transparent
+  );
+
+}
+
+html {
+  background-color: var(--color-ground);
+  color: var(--color-ink);
+  color-scheme: dark;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  font-family: var(--font-sans);
+  font-feature-settings: "cv05", "ss01";
+}
+
+/* ── Atmosphere ──────────────────────────────────────────────────────────
+   Three layers inside one bounded, clipped box (see HoloBackdrop). The box
+   creates the stacking context the rake blends against, which keeps the
+   dodge off the rest of the page and off the table rows entirely.
+   ───────────────────────────────────────────────────────────────────────── */
+
+/* The atmosphere, and it is the reason the rake has anything to amplify.
+   ringo-marketing runs a WebGL fog here and falls back to exactly this on
+   low-power devices: the same two presences as stacked radial gradients, no
+   per-frame work, the drift a compositor transform. The fallback is the whole
+   port — a stats page does not get a shader.
+
+   Two presences, deliberately not chroma-matched: indigo upper-right carries
+   the colour, near-neutral graphite lower-left carries the light. Positions
+   come from ATMO_HERO; the indigo is stronger and bluer than the palette's
+   raw lilac, matched against what the shader actually renders on
+   welcome.joinringo.xyz rather than against the token. */
+.holo-atmo {
+  position: absolute;
+  inset: -6%;
+  background-image:
+    radial-gradient(
+      58% 52% at 86% 16%,
+      rgb(108 120 205 / 0.17),
+      transparent 72%
+    ),
+    radial-gradient(
+      55% 44% at 12% 88%,
+      rgb(94 97 101 / 0.11),
+      transparent 70%
+    );
+  will-change: transform;
+  animation: atmo-drift 36s ease-in-out infinite;
+}
+
+@keyframes atmo-drift {
+  0%,
+  100% {
+    transform: translate3d(0, 0, 0) scale(1.06);
+  }
+  50% {
+    transform: translate3d(-2.5%, 2%, 0) scale(1.14);
+  }
+}
+
+/* Quiet frame: the outer band holds the static floor, so the drifting layer
+   never moves the edges. */
+.holo-atmo-frame {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      to right,
+      var(--color-ground),
+      transparent 15%,
+      transparent 85%,
+      var(--color-ground)
+    ),
+    linear-gradient(
+      to bottom,
+      transparent 84%,
+      var(--color-ground)
+    );
+}
+
+/* Grid values are ringo-marketing's: 72px tiles, the container at 0.07, and
+   the fade centred at 40% height so the hairlines read across the middle band
+   rather than only under the header. */
+.holo-grid {
+  background-image:
+    linear-gradient(to right, #ffffff90 1px, transparent 1px),
+    linear-gradient(to bottom, #ffffff 1px, transparent 1px);
+  background-size: 72px 72px;
+  opacity: 0.07;
+  -webkit-mask-image: radial-gradient(
+    ellipse 60% 60% at 50% 40%,
+    #000 30%,
+    transparent 80%
+  );
+  mask-image: radial-gradient(
+    ellipse 60% 60% at 50% 40%,
+    #000 30%,
+    transparent 80%
+  );
+}
+
+.holo-wash {
+  background: var(--gradient-holo);
+  opacity: 0.075;
+  -webkit-mask-image: radial-gradient(
+    110% 110% at 62% -16%,
+    #000 0%,
+    rgba(0, 0, 0, 0.45) 38%,
+    transparent 72%
+  );
+  mask-image: radial-gradient(
+    110% 110% at 62% -16%,
+    #000 0%,
+    rgba(0, 0, 0, 0.45) 38%,
+    transparent 72%
+  );
+}
+
+/* Raking light, ported unchanged. color-dodge amplifies the backdrop instead
+   of painting on it, so the band only appears where the atmosphere and the
+   grid already put something — the presences below are its fuel, and without
+   them it returns neutral light on a neutral ground.
+
+   The animation is transform-only and the layer is promoted, so a frame costs
+   a composite and never a repaint or a re-blend of the page. The box that
+   clips it is 720px tall and absolute, so scrolling past the hero takes the
+   whole effect off-screen and the cost goes to zero. */
+.holo-rake {
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  left: 0;
+  width: 42%;
+  background: var(--gradient-holo);
+  background-size: 220% 220%;
+  background-position: 50% 50%;
+  mix-blend-mode: color-dodge;
+  opacity: 0.26;
+  -webkit-mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 38%,
+    #000 62%,
+    transparent
+  );
+  mask-image: linear-gradient(
+    90deg,
+    transparent,
+    #000 38%,
+    #000 62%,
+    transparent
+  );
+  will-change: transform;
+  transform: translateX(-130%) skewX(-9deg);
+  animation: holo-rake 12.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
+}
+
+/* Crosses in the first 71%, then waits off-frame. The pause is what keeps it
+   an occurrence rather than a running loop. */
+@keyframes holo-rake {
+  0% {
+    transform: translateX(-130%) skewX(-9deg);
+  }
+  71%,
+  100% {
+    transform: translateX(330%) skewX(-9deg);
+  }
+}
+
+/* ── Foil on content ─────────────────────────────────────────────────────── */
+
+.holo-text {
+  background-image: var(--gradient-holo-text);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+}
+
+.holo-line {
+  background-image: var(--gradient-holo-line);
+}
+
+/* ── Utilities ───────────────────────────────────────────────────────────── */
+
+/* Every figure is meant to be compared to the one above it. */
+.tnum {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum";
+}
+
+.live-dot {
+  animation: pulse-dot 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.35;
+    transform: scale(0.82);
+  }
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background-color: var(--color-raised);
+  border-radius: 6px;
+}
+
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 0.06),
+    transparent
+  );
+  animation: shimmer 1.6s infinite;
+}
+
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.rise {
+  animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-holo);
+  outline-offset: 3px;
+  border-radius: 3px;
+}
+
+::selection {
+  background: rgb(185 220 228);
+  color: var(--color-holo-ink);
+}
+
+* {
+  scrollbar-width: thin;
+  scrollbar-color: var(--color-overlay) transparent;
+}
+
+*::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+*::-webkit-scrollbar-thumb {
+  background-color: var(--color-overlay);
+  border-radius: 999px;
+  border: 3px solid transparent;
+  background-clip: content-box;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition-duration: 0.01ms !important;
+  }
+}
