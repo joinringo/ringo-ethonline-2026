@@ -9,8 +9,8 @@ export function Empty({ title, body }: { title: string; body: string }) {
       >
         <span className="h-2 w-2 rounded-full bg-faint" />
       </div>
-      <h2 className="mt-4 text-[15px] font-semibold tracking-tight">{title}</h2>
-      <p className="mx-auto mt-2 max-w-[52ch] text-[13px] leading-relaxed text-muted">
+      <h2 className="mt-4 text-lead font-semibold tracking-tight">{title}</h2>
+      <p className="mx-auto mt-2 max-w-[52ch] text-body leading-relaxed text-muted">
         {body}
       </p>
     </Card>

@@ -29,7 +29,7 @@ export function LifetimeHero({
     >
       <div>
         <RevealItem>
-          <p className="font-label flex items-center gap-2 text-[12px] tracking-[0.1em] text-faint uppercase">
+          <p className="font-label flex items-center gap-2 text-micro tracking-[0.1em] text-faint uppercase">
             <span
               aria-hidden
               className="live-dot h-1.5 w-1.5 rounded-full bg-resolved"
@@ -39,13 +39,13 @@ export function LifetimeHero({
         </RevealItem>
 
         <RevealItem className="mt-5">
-          <h1 className="max-w-[20ch] text-[30px] leading-[1.1] font-semibold tracking-[-0.02em] text-balance sm:text-[34px] md:text-[46px]">
+          <h1 className="max-w-[20ch] text-[1.875rem] leading-[1.1] font-semibold tracking-[-0.02em] text-balance sm:text-[2.125rem] md:text-[2.875rem]">
             Every market Ringo has settled, read back out of the chain.
           </h1>
         </RevealItem>
 
         <RevealItem className="mt-5">
-          <p className="max-w-[54ch] text-[15px] leading-relaxed text-muted">
+          <p className="max-w-[54ch] text-lead leading-relaxed text-muted">
             Markets open when someone replies to a tweet. Two people take
             opposite sides, USDC settles on Polygon, and a subgraph on The Graph
             Network indexes the result.
@@ -53,9 +53,9 @@ export function LifetimeHero({
         </RevealItem>
 
         <RevealItem className="mt-7">
-          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-faint">
-            <SideKey color="bg-side-a" label="Side A" />
-            <SideKey color="bg-side-b" label="Side B" />
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-body text-faint">
+            <SideKey color="bg-side-a" label="Side A · yes" />
+            <SideKey color="bg-side-b" label="Side B · no" />
             <span aria-hidden className="hidden h-3 w-px bg-hairline sm:block" />
             <span>
               {totals.lastActiveDay
@@ -66,8 +66,17 @@ export function LifetimeHero({
         </RevealItem>
       </div>
 
-      {/* Last and from further down: the claim lands before its proof. */}
-      <RevealItem distance={22}>
+      {/* Last and from further down: the claim lands before its proof.
+
+          `min-w-0` is load-bearing, not tidiness. A grid item's automatic
+          minimum size is its content's min-content width, and the query block
+          inside is `white-space: pre` — 562px of GraphQL that cannot wrap. So
+          the track refused to go under that, the page kept a 584px floor, and
+          every viewport narrower than it scrolled sideways. The sticky header
+          only pins vertically, so it slid off with the document and read as a
+          broken bar. Released, the panel's own `overflow-x-auto` takes the
+          overflow, which is what it was there for. */}
+      <RevealItem distance={22} className="min-w-0">
         <Card className="overflow-hidden">
           <QueryPanel
             queryId="lifetime"

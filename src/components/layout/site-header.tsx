@@ -219,7 +219,7 @@ export function SiteHeader() {
               one lives in a sticky bar and theirs is a hero lockup. */}
           <Link
             href="/"
-            className="relative z-10 flex shrink-0 items-center gap-2 text-[16px] transition-opacity duration-200 hover:opacity-75"
+            className="relative z-10 flex shrink-0 items-center gap-2 text-lead transition-opacity duration-200 hover:opacity-75"
           >
             {/* Never rotate the mark: it has an orientation of its own. */}
             <motion.span
@@ -278,7 +278,7 @@ export function SiteHeader() {
               whileHover={reduced ? undefined : { y: -1 }}
               whileTap={reduced ? undefined : { scale: 0.97 }}
               transition={spring}
-              className={`group/cta relative flex items-center gap-1.5 overflow-hidden rounded-full border px-3.5 py-1.5 text-[13px] font-medium transition-colors duration-500 ${
+              className={`group/cta relative flex items-center gap-1.5 overflow-hidden rounded-full border px-3.5 py-1.5 text-body font-medium transition-colors duration-500 ${
                 atTop
                   ? "border-hairline bg-raised/50 text-muted hover:border-holo/40 hover:text-ink"
                   : "border-transparent text-holo-ink"
@@ -392,7 +392,7 @@ function SectionLinks({
                 <a
                   href={`#${section.id}`}
                   aria-current={active === section.id ? "true" : undefined}
-                  className={`relative block rounded-full px-3 py-1.5 text-[13px] transition-colors duration-300 ${
+                  className={`relative block rounded-full px-3 py-1.5 text-body transition-colors duration-300 ${
                     active === section.id
                       ? "text-ink"
                       : "text-faint hover:text-muted"
@@ -495,9 +495,9 @@ function MobileMenu({
                 onClick={onClose}
                 aria-current={active === section.id ? "true" : undefined}
                 variants={ITEM}
-                className="flex items-baseline gap-4 py-2 text-[30px] font-semibold tracking-[-0.02em]"
+                className="flex items-baseline gap-4 py-2 text-[1.875rem] font-semibold tracking-[-0.02em]"
               >
-                <span className="w-6 font-mono text-[11px] text-faint tabular-nums">
+                <span className="w-6 font-mono text-micro text-faint tabular-nums">
                   0{index + 1}
                 </span>
                 <span
@@ -514,7 +514,7 @@ function MobileMenu({
               rel="noreferrer noopener"
               onClick={onClose}
               variants={ITEM}
-              className="holo-fill holo-fill-glow mt-8 flex items-center justify-center gap-2 rounded-full py-3 text-[14px] font-semibold"
+              className="holo-fill holo-fill-glow mt-8 flex items-center justify-center gap-2 rounded-full py-3 text-body font-semibold"
             >
               Open Ringo
             </motion.a>
@@ -528,10 +528,10 @@ function MobileMenu({
 function Meta({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline gap-1.5 whitespace-nowrap">
-      <dt className="font-label text-[11px] tracking-[0.06em] text-faint uppercase">
+      <dt className="font-label text-micro tracking-[0.06em] text-faint uppercase">
         {label}
       </dt>
-      <dd className="text-[13px] text-ink">{value}</dd>
+      <dd className="text-body text-ink">{value}</dd>
     </div>
   );
 }

@@ -38,6 +38,30 @@
      just learned the key should not meet the same rose meaning error. */
   --color-danger: #ff6b6b;
 
+  /* ── Type scale ──────────────────────────────────────────────────────
+     Five sizes, in rem, and nothing on the page sets a font-size any other
+     way. Two reasons it is rem and not the px literals this replaced. A px
+     size is absolute: a reader who raises their browser's default font size
+     gets nothing from it, which is the setting people with low vision
+     actually use — browser zoom scales the layout too, and on a table this
+     wide that means horizontal scrolling instead of larger text. And a named
+     scale is what stops the next component inventing a size; the one this
+     replaced had grown to twelve, including a 12.5px.
+
+     The floor is 12px. Below that the label register stops being legible at a
+     normal viewing distance, and every size under it here was carrying real
+     content — axis dates, table headers, a JSON response.
+
+     `micro` is for uppercase tracked labels and rank numbers only: never a
+     sentence. `meta` is for what sits beside a figure without competing with
+     it. `body` is the page's running text and every control. `lead` opens a
+     section. */
+  --text-micro: 0.75rem; /* 12 */
+  --text-meta: 0.8125rem; /* 13 */
+  --text-body: 0.875rem; /* 14 */
+  --text-lead: 1rem; /* 16 */
+  --text-figure: 1.5rem; /* 24 */
+
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, "Helvetica Neue",
     Helvetica, Arial, sans-serif;
   --font-mono: var(--font-mono-code), ui-monospace, Menlo, Consolas, monospace;

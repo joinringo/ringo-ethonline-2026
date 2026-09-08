@@ -26,7 +26,7 @@ export function ActivityChart({ series }: { series: DailyPoint[] }) {
           title="Daily settled volume"
           note={`Last ${series.length} days ending on the most recent indexed day. ${active} of them had a fill.`}
           aside={
-            <p className="tnum text-right text-[13px] text-muted">
+            <p className="tnum text-right text-meta text-muted">
               Peak{" "}
               <span className="font-medium text-ink">
                 ${formatUsdc(peak, { decimals: 0 })}
@@ -60,7 +60,7 @@ export function ActivityChart({ series }: { series: DailyPoint[] }) {
             </div>
           </RevealGroup>
 
-          <div className="mt-3 flex justify-between text-[11px] text-faint">
+          <div className="mt-3 flex justify-between text-micro text-faint">
             <span>{formatDayLabel(first.date)}</span>
             <span>{formatDayLabel(last.date)}</span>
           </div>
@@ -107,13 +107,13 @@ function Bar({
       >
         {/* muted, not faint: this bubble sits on --color-overlay, the lightest
             surface on the page, where faint drops to 4.2:1. */}
-        <p className="text-[11px] text-muted">
+        <p className="text-micro text-muted">
           {formatDayLabel(point.date)} UTC
         </p>
-        <p className="tnum mt-1 text-[13px] font-medium">
+        <p className="tnum mt-1 text-body font-medium">
           ${formatUsdc(point.volume, { decimals: 0 })}
         </p>
-        <p className="tnum text-[12px] text-muted">
+        <p className="tnum text-meta text-muted">
           {formatCount(point.fills)} fills · {formatCount(point.activeTraders)}{" "}
           traders
         </p>

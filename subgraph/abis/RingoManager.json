@@ -48,7 +48,7 @@
       },
       {
         "indexed": false,
-        "name": "escrow",
+        "name": "ringoAddress",
         "type": "address"
       }
     ]

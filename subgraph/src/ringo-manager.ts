@@ -1,4 +1,4 @@
-import { BigInt } from "@graphprotocol/graph-ts";
+import { Address, BigInt } from "@graphprotocol/graph-ts";
 import {
   QuestionCreated,
   RingoCreatedAndFilled,
@@ -6,6 +6,7 @@ import {
   RingoInvalidated,
 } from "../generated/RingoManager/RingoManager";
 import { Market, Ringo, Resolution } from "../generated/schema";
+import { RingoContract } from "../generated/RingoManager/RingoContract";
 import * as abi from "./abi-adapters";
 import { ringoKey } from "./ringo-id";
 import {
@@ -77,8 +78,27 @@ export function handleRingoCreatedAndFilled(event: RingoCreatedAndFilled): void 
   traderA.save();
   traderB.save();
 
+  // The claim never reaches a log: RingoManager takes it as `string calldata`
+  // and emits nothing carrying it. The factory does deploy a contract per ringo
+  // though, its address is on this event, and getRingoConfig() there returns
+  // the text. One call per fill is what an events-only index cannot do and is
+  // the whole reason this data source declares a second ABI.
+  //
+  // try_ rather than a plain call on purpose: a revert has to leave the claim
+  // null and the fill intact, not fail the handler and stall the sync.
+  let ringoAddress = abi.fillRingoAddress(event);
+  let config = RingoContract.bind(ringoAddress).try_getRingoConfig();
+  if (!config.reverted) {
+    market.claim = config.value.getClaim();
+    market.assertionId = config.value.getAssertionId().toHexString();
+  }
+
   let ringo = new Ringo(eventId(event));
   ringo.market = market.id;
+  ringo.contractAddress = ringoAddress;
+  // Fixed by the contract, not inferred: createAndFillRingo documents userA as
+  // the YES side and fills the two sides in that order.
+  ringo.outcomeA = "YES";
   ringo.userA = traderA.id;
   ringo.userB = traderB.id;
   ringo.amountA = amountA;
@@ -121,9 +141,38 @@ export function handleRingoResolved(event: RingoResolved): void {
   market.resolution = resolution.id;
   market.save();
 
-  // Must come after market.save(): creditRecord reads this market's fills back
+  // Must come after market.save(): both of these read this market's fills back
   // out of the store through the derived field.
-  creditRecord(market, abi.resAddress(event), event.block.timestamp);
+  let winner = abi.resAddress(event);
+  settleClaim(market, winner);
+  creditRecord(market, winner, event.block.timestamp);
+}
+
+/**
+ * Records whether the claim held, from the side the winner sat on.
+ *
+ * userA is the YES participant by construction, so the winning address is the
+ * verdict: side A means the claim was true, side B means it was not. Left null
+ * when the fill predates this index, because there is no pair to place the
+ * winner against — an unanswered question rather than a false one.
+ */
+function settleClaim(market: Market, winner: Address): void {
+  let fills = market.ringos.load();
+  if (fills.length == 0) return;
+
+  let winnerId = winner.toHexString();
+  for (let i = 0; i < fills.length; i++) {
+    if (fills[i].userA == winnerId) {
+      market.claimHeld = true;
+      market.save();
+      return;
+    }
+    if (fills[i].userB == winnerId) {
+      market.claimHeld = false;
+      market.save();
+      return;
+    }
+  }
 }
 
 export function handleRingoInvalidated(event: RingoInvalidated): void {

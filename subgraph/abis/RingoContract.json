@@ -1,0 +1,18 @@
+[
+  {
+    "type": "function",
+    "name": "getRingoConfig",
+    "stateMutability": "view",
+    "inputs": [],
+    "outputs": [
+      { "name": "userAAddress", "type": "address" },
+      { "name": "userBAddress", "type": "address" },
+      { "name": "tokenAddress", "type": "address" },
+      { "name": "amountA", "type": "uint256" },
+      { "name": "amountB", "type": "uint256" },
+      { "name": "preparationPeriodEnd", "type": "uint256" },
+      { "name": "assertionId", "type": "bytes32" },
+      { "name": "claim", "type": "string" }
+    ]
+  }
+]

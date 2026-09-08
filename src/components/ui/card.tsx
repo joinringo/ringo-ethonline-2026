@@ -26,9 +26,9 @@ export function SectionHead({
   return (
     <div className="flex flex-wrap items-end justify-between gap-3 border-b border-hairline px-5 py-4">
       <div>
-        <h2 className="text-[15px] font-semibold tracking-tight">{title}</h2>
+        <h2 className="text-lead leading-snug font-semibold tracking-tight">{title}</h2>
         {note ? (
-          <p className="mt-1 max-w-[64ch] text-[13px] leading-relaxed text-muted">
+          <p className="mt-1 max-w-[64ch] text-body leading-relaxed text-muted">
             {note}
           </p>
         ) : null}

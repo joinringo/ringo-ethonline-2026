@@ -34,6 +34,12 @@ dataSources:
       abis:
         - name: RingoManager
           file: ./abis/RingoManager.json
+        # The per-ringo contract the factory deploys. Its address arrives on the
+        # fill event, and getRingoConfig() is the only place the claim text is
+        # readable: RingoManager takes it as a calldata argument and never emits
+        # it, so an event-only index cannot see it at all.
+        - name: RingoContract
+          file: ./abis/RingoContract.json
       eventHandlers:
         # Every signature below is settled against Polygon mainnet, not guessed.
         # The implementation behind the proxy is unverified on every explorer

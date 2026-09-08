@@ -22,6 +22,8 @@ export const TOP_MARKETS_QUERY = /* GraphQL */ `
   query TopMarkets($first: Int = 8) {
     markets(orderBy: volume, orderDirection: desc, first: $first) {
       id
+      claim
+      claimHeld
       questionId
       status
       outcome
@@ -78,8 +80,21 @@ export type Market = {
    */
   id: string;
   /**
-   * Null for markets created before block 85629763, when QuestionCreated
-   * started firing.
+   * The claim in the words whoever opened it wrote. Read from the ringo
+   * contract, not from a log — RingoManager takes it as calldata and emits
+   * nothing carrying it. Null where the call reverted or no fill was indexed.
+   */
+  claim: string | null;
+  /**
+   * Whether the claim turned out to be true. The contract fixes userA as the
+   * YES side, so the winning address settles it. Null while open, for a voided
+   * market, and where the fill predates the index.
+   */
+  claimHeld: boolean | null;
+  /**
+   * Null more often than age explains: the contract keys a question by
+   * keccak256(claim) and only emits QuestionCreated the first time a claim is
+   * seen, so repeats reuse the question silently.
    */
   questionId: string | null;
   status: MarketStatus;

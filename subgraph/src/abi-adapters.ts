@@ -73,9 +73,12 @@ export function fillAmountB(e: RingoCreatedAndFilled): BigInt {
   return e.params.amountB;
 }
 
-/** The per-ringo escrow that holds both stakes. Not stored yet — no schema field. */
-export function fillEscrow(e: RingoCreatedAndFilled): Address {
-  return e.params.escrow;
+/**
+ * The contract the factory deployed for this ringo. It holds both stakes, and
+ * it is the only route to the claim text — see handleRingoCreatedAndFilled.
+ */
+export function fillRingoAddress(e: RingoCreatedAndFilled): Address {
+  return e.params.ringoAddress;
 }
 
 // --- RingoResolved(bytes ringoId, address winner, uint256 amount) -----------

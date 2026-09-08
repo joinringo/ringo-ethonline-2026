@@ -58,7 +58,7 @@ export function TradersTable({
         <ColumnGlossary items={COLUMNS} />
 
         <div className="overflow-x-auto">
-          <table className="w-full min-w-[560px] border-collapse text-[14px]">
+          <table className="w-full min-w-[560px] border-collapse text-body">
             <thead>
               <tr className="border-b border-hairline bg-raised/30 text-left">
                 <th className={`${TH} w-10`}>#</th>
@@ -85,7 +85,7 @@ export function TradersTable({
                       href={`${POLYGONSCAN}${trader.id}`}
                       target="_blank"
                       rel="noreferrer noopener"
-                      className="inline-flex items-center gap-1.5 text-[13px] transition-colors hover:text-holo"
+                      className="inline-flex items-center gap-1.5 transition-colors hover:text-holo"
                     >
                       {shortAddress(trader.id)}
                       <ExternalIcon />
@@ -114,7 +114,7 @@ export function TradersTable({
         </div>
 
         {settledAny ? null : (
-          <p className="border-t border-hairline px-5 py-4 text-[13px] leading-relaxed text-faint">
+          <p className="border-t border-hairline px-5 py-4 text-body leading-relaxed text-faint">
             Win and loss counts appear once the index reaches a settled market.
             The resolution event names the winner, so the record is real — it is
             simply empty until the sync gets there.

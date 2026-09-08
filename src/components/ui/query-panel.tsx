@@ -80,7 +80,7 @@ export function QueryPanel({
             <Dot className="bg-mark/70" />
             <Dot className="bg-resolved/70" />
           </span>
-          <p className="ml-1 truncate text-[12px] text-muted">
+          <p className="ml-1 truncate text-meta text-muted">
             {filename}
           </p>
         </div>
@@ -91,7 +91,7 @@ export function QueryPanel({
             type="button"
             onClick={run}
             disabled={result.state === "running"}
-            className="flex items-center gap-1.5 rounded-md border border-holo/40 bg-holo/10 px-2 py-1 text-[12px] font-medium text-ink transition-colors hover:border-holo/70 hover:bg-holo/15 disabled:cursor-progress disabled:opacity-60"
+            className="flex items-center gap-1.5 rounded-md border border-holo/40 bg-holo/10 px-2.5 py-1.5 text-meta font-medium text-ink transition-colors hover:border-holo/70 hover:bg-holo/15 disabled:cursor-progress disabled:opacity-60"
           >
             <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden>
               <path
@@ -107,7 +107,7 @@ export function QueryPanel({
         </div>
       </div>
 
-      <pre className="overflow-x-auto px-4 py-4 font-mono text-[12px] leading-[1.75] text-ink/90">
+      <pre className="overflow-x-auto px-4 py-4 font-mono text-meta leading-[1.75] text-ink/90">
         <code>{text}</code>
       </pre>
 
@@ -115,14 +115,14 @@ export function QueryPanel({
         {result.state === "idle" ? null : (
           <div className="border-t border-hairline">
             <div className="flex flex-wrap items-center justify-between gap-2 bg-raised/30 px-4 py-2">
-              <p className="font-label text-[11px] tracking-[0.06em] text-faint uppercase">
+              <p className="font-label text-micro tracking-[0.06em] text-faint uppercase">
                 Response
               </p>
               {result.state === "ok" ? (
                 // The timing is our server's, and the response is cached for
                 // 60s, so a second run inside that window reports about 0 ms.
                 // Saying so beats printing a number that reads as a mock.
-                <p className="tnum text-[12px] text-faint">
+                <p className="tnum text-meta text-faint">
                   {result.rows === null ? null : `${result.rows} rows · `}
                   {result.elapsedMs} ms · 60s cache
                 </p>
@@ -130,13 +130,13 @@ export function QueryPanel({
             </div>
 
             {result.state === "running" ? (
-              <p className="px-4 py-4 text-[13px] text-muted">
+              <p className="px-4 py-4 text-body text-muted">
                 Asking the index…
               </p>
             ) : null}
 
             {result.state === "failed" ? (
-              <p className="px-4 py-4 text-[13px] leading-relaxed text-invalid">
+              <p className="px-4 py-4 text-body leading-relaxed text-invalid">
                 {result.message}
               </p>
             ) : null}
@@ -145,7 +145,7 @@ export function QueryPanel({
               /* Without this Lenis scrolls the page instead of the code. */
               <pre
                 data-lenis-prevent
-                className="max-h-[280px] overflow-auto px-4 py-4 font-mono text-[11px] leading-[1.7] text-muted"
+                className="max-h-[280px] overflow-auto px-4 py-4 font-mono text-meta leading-[1.7] text-muted"
               >
                 <code>{result.body}</code>
               </pre>
@@ -154,7 +154,7 @@ export function QueryPanel({
         )}
       </div>
 
-      <p className="border-t border-hairline px-4 py-3 text-[13px] leading-relaxed text-faint">
+      <p className="border-t border-hairline px-4 py-3 text-body leading-relaxed text-faint">
         {note}
       </p>
     </>

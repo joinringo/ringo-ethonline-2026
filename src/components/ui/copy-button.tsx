@@ -33,7 +33,7 @@ export function CopyButton({
       type="button"
       onClick={copy}
       aria-label={copied ? "Copied" : label}
-      className="flex items-center gap-1.5 rounded-md border border-hairline bg-raised/60 px-2 py-1 text-[12px] font-medium text-muted transition-colors hover:border-holo/50 hover:text-ink"
+      className="flex items-center gap-1.5 rounded-md border border-hairline bg-raised/60 px-2.5 py-1.5 text-meta font-medium text-muted transition-colors hover:border-holo/50 hover:text-ink"
     >
       {copied ? (
         <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden>

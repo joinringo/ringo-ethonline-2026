@@ -16,11 +16,11 @@ import type { Market } from "@/lib/subgraph/queries";
 const COLUMNS: ColumnNote[] = [
   {
     term: "Market",
-    note: "The market's id, which is keccak256 of Ringo's own ringoId. The contract indexes that id on a dynamic type, so the log carries only its hash and never the readable value. The claim text is not on chain at all.",
+    note: "The claim as it was written, above the market's id. The claim reaches no log — RingoManager takes it as a calldata argument — so the index reads it back from the contract the factory deployed for that ringo. The id below it is keccak256 of Ringo's own ringoId, which is all the log carries, since the id is indexed on a dynamic type. A few rows show only the id: those are markets whose fill this index never saw, so there is no contract to ask.",
   },
   {
     term: "Status",
-    note: "Settled means the contract paid out, and the label beside it says which of the two sides collected. Voided means it was invalidated and nobody won. Open means no resolution has been indexed yet. A few settled rows show an address instead of a side: those predate the fill event this subgraph decodes, so there is no pair to match the winner against.",
+    note: "Settled means the contract paid out, and the label beside it says how the claim ended. The contract fixes side A as the YES side, so the winning address is the verdict: held means the claim turned out true, broken means it did not. Voided means the market was invalidated and nobody won. Open means no resolution has been indexed yet. A few settled rows show an address instead: those predate the fill event this index decodes, so there is no pair to place the winner against.",
   },
   {
     term: "Volume",
@@ -97,10 +97,21 @@ export function MarketsTable({
                   blur={false}
                 >
                   <td className={RANK}>{index + 1}</td>
-                  <td className={TD}>
-                    <span className="whitespace-nowrap text-ink">
-                      {shortAddress(market.id)}
-                    </span>
+                  <td className={`${TD} max-w-[38ch]`}>
+                    {market.claim === null ? (
+                      <span className="whitespace-nowrap text-muted">
+                        {shortAddress(market.id)}
+                      </span>
+                    ) : (
+                      <>
+                        <span className="line-clamp-2 leading-snug text-ink">
+                          {market.claim}
+                        </span>
+                        <span className="mt-1 block font-mono text-[11px] text-faint">
+                          {shortAddress(market.id)}
+                        </span>
+                      </>
+                    )}
                   </td>
                   <td className={TD}>
                     <StatusMark
@@ -338,7 +349,7 @@ function StatusMark({
             side === "A" ? "text-side-a" : "text-side-b"
           }`}
         >
-          Side {side} won
+          {side === "A" ? "Claim held" : "Claim broken"}
         </span>
       ) : winner === null ? null : (
         <a
