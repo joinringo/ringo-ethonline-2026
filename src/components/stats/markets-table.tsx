@@ -1,4 +1,6 @@
 import { POLYGONSCAN, RANK, ROW, TD, TH } from "@/components/stats/table";
+import { GrowRail } from "@/components/motion/grow";
+import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Card, SectionHead } from "@/components/ui/card";
 import { Empty } from "@/components/ui/empty";
 import {
@@ -56,62 +58,78 @@ export function MarketsTable({
   );
 
   return (
-    <Card className="overflow-hidden">
-      <SectionHead
-        title="Largest markets"
-        note="Ranked by settled volume. The bar under each figure is its share of the largest market here."
-      />
+    <Reveal>
+      <Card className="overflow-hidden">
+        <SectionHead
+          title="Largest markets"
+          note="Ranked by settled volume. The bar under each figure is its share of the largest market here."
+        />
 
-      <ColumnGlossary items={COLUMNS} />
+        <ColumnGlossary items={COLUMNS} />
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[640px] border-collapse text-[14px]">
-          <thead>
-            <tr className="border-b border-hairline bg-raised/30 text-left">
-              <th className={`${TH} w-10`}>#</th>
-              <th className={TH}>Market</th>
-              <th className={TH}>Status</th>
-              <th className={`${TH} text-right`}>Volume</th>
-              <th className={`${TH} text-right`}>Staked</th>
-              <th className={`${TH} text-right`}>Opened</th>
-            </tr>
-          </thead>
-          <tbody>
-            {markets.map((market, index) => (
-              <tr key={market.id} className={ROW}>
-                <td className={RANK}>{index + 1}</td>
-                <td className={TD}>
-                  <span className="text-[13px] whitespace-nowrap text-ink">
-                    {shortAddress(market.id)}
-                  </span>
-                </td>
-                <td className={TD}>
-                  <StatusMark
-                    status={market.status}
-                    winner={market.resolution?.resolver ?? null}
-                    fill={market.ringos[0] ?? null}
-                  />
-                </td>
-                <td className={`${TD} text-right`}>
-                  <span className="tnum font-medium">
-                    ${formatUsdc(market.volume)}
-                  </span>
-                  <ShareBar value={BigInt(market.volume)} of={top} />
-                </td>
-                <td className={`${TD} text-right`}>
-                  <SideSplit fill={market.ringos[0] ?? null} />
-                </td>
-                <td className={`${TD} text-right whitespace-nowrap text-muted`}>
-                  {formatDate(market.createdAt)}
-                </td>
+        <div className="overflow-x-auto">
+          <table
+            /* The outer gutter, set on the table rather than on the cells: a
+               descendant selector outranks the `px-4` each cell carries, so the
+               edge wins on specificity instead of on stylesheet order. 20px on
+               the left matches the card head above it; the right gets 24 because
+               a right-aligned column runs into the edge, where a left-aligned
+               one runs away from it. */
+            className="w-full min-w-[640px] border-collapse text-body [&_:is(th,td):first-child]:pl-5 [&_:is(th,td):last-child]:pr-6"
+          >
+            <thead>
+              <tr className="border-b border-hairline bg-raised/30 text-left">
+                <th className={`${TH} w-10`}>#</th>
+                <th className={TH}>Market</th>
+                <th className={TH}>Status</th>
+                <th className={`${TH} text-right`}>Volume</th>
+                <th className={`${TH} text-center`}>Staked</th>
+                <th className={`${TH} text-right`}>Opened</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <RevealGroup as="tbody" stagger={0.028} amount={0.02}>
+              {markets.map((market, index) => (
+                <RevealItem
+                  as="tr"
+                  key={market.id}
+                  className={ROW}
+                  distance={8}
+                  blur={false}
+                >
+                  <td className={RANK}>{index + 1}</td>
+                  <td className={TD}>
+                    <span className="whitespace-nowrap text-ink">
+                      {shortAddress(market.id)}
+                    </span>
+                  </td>
+                  <td className={TD}>
+                    <StatusMark
+                      status={market.status}
+                      winner={market.resolution?.resolver ?? null}
+                      fill={market.ringos[0] ?? null}
+                    />
+                  </td>
+                  <td className={`${TD} text-right`}>
+                    <span className="tnum font-medium">
+                      ${formatUsdc(market.volume)}
+                    </span>
+                    <ShareBar value={BigInt(market.volume)} of={top} />
+                  </td>
+                  <td className={`${TD} text-center`}>
+                    <SideSplit fill={market.ringos[0] ?? null} />
+                  </td>
+                  <td className={`${TD} text-right whitespace-nowrap text-muted`}>
+                    {formatDate(market.createdAt)}
+                  </td>
+                </RevealItem>
+              ))}
+            </RevealGroup>
+          </table>
+        </div>
 
-      <ShowMore href={moreHref} shown={markets.length} noun="markets" />
-    </Card>
+        <ShowMore href={moreHref} shown={markets.length} noun="markets" />
+      </Card>
+    </Reveal>
   );
 }
 
@@ -131,33 +149,28 @@ export function MarketsTable({
  * is now the thing that stands out. It is also the one place the Side A / Side
  * B key in the header pays off.
  *
- * Every row is the same shape — one line of figures over one rail. That is what
- * puts the Staked figure on the same baseline as the Volume figure beside it,
- * which a one-line cell sitting next to a two-line one cannot do, and it turns
- * the exception into a change of colour rather than a change of shape: the rail
- * is always the true split, faint when the sides are even and at full strength
- * when they are not, so the rows that differ are findable without reading a
- * number.
+ * Every row is the same shape — one line of figures over one rail — which is
+ * what puts the Staked figure on the same baseline as the Volume figure beside
+ * it, and turns the exception into a change of colour rather than of shape.
  *
- * The column right-aligns, like Volume and Opened. Two other anchors were
- * tried and measured first, and both are worse.
+ * The column centres. Everything in it — the header, each row's figures and
+ * every rail — sits on one axis through the middle of the cell, and the rail is
+ * one fixed length on every row.
  *
- * Reserving a fixed slot after "each", so that "$250.00" and "$191.88" end at
- * the same x, pulls every figure off the edge the header and the rails still
- * sit on: three right edges where the rest of the table has one.
+ * Centring is the unusual choice for money, so it is worth saying why the usual
+ * one does not work here. Right-alignment earns its keep when a column is one
+ * shape repeated, because then the digits stack into a ledger. This column is
+ * two shapes: "$250.00 each" ends in a word, "$42.12 vs $191.88" ends in a
+ * digit. Pin their right edges together and the money lands somewhere different
+ * on the two kinds of row. Reserve a slot after "each" so the money lines up,
+ * and the header and the rails are left on an edge nothing else uses. Split the
+ * cell into two table columns and each half gets a hard edge, but the header
+ * then has no single thing to head. Every one of those was built and measured;
+ * each fixes one relationship by breaking another, because they all assume an
+ * edge that this column's content does not have.
  *
- * Centring is worse still, and it fails in a way that is invisible until you
- * draw the column guides. Every other column in this table ends — or begins —
- * on a hard edge of glyphs: the addresses all start at one x, the volumes and
- * the dates all finish at one x. A centred column has no such edge by
- * construction. "$250.00 each" and "$42.12 vs $191.88" share a centre, so their
- * digits land in different places on every row and the column reads as the one
- * thing in the table that will not line up. That it is centred under its own
- * header does not rescue it; a header is one row and the edge is all of them.
- *
- * Right-aligned, the 8,480 of 8,779 rows that read "$N each" stack their digits
- * exactly, because "each" is a constant width. The few rows that differ break
- * the stack, which is the point: those are the rows worth looking at.
+ * A centre line is the one axis all three can share, and sharing one axis is
+ * what alignment means.
  */
 function SideSplit({
   fill,
@@ -167,7 +180,7 @@ function SideSplit({
   if (fill === null) {
     return (
       <StakedCell rail={<Rail />}>
-        <span className="text-[13px] text-faint">no fill indexed</span>
+        <span className="text-meta text-faint">no fill indexed</span>
       </StakedCell>
     );
   }
@@ -206,17 +219,8 @@ function SideSplit({
 }
 
 /**
- * Figures over a rail as wide as they are.
- *
- * The box shrinks to the figures — `inline-flex`, placed by the cell's own
- * `text-right` — and the rail, stretched by the column's default cross-axis
- * alignment, comes out exactly that width. So the rail starts where the money
- * starts and ends where the line ends, on every row, whatever the row says. A
- * fixed-width rail pinned to the cell edge cannot do that: on an even row it
- * lands under the word "each" instead of under the amount.
- *
- * The shape — one line of figures, then a rail — is the Volume cell's, which is
- * what puts the two columns' figures on one baseline.
+ * The figures over their rail, both centred, so a row of either shape and the
+ * rail under it come out on the column's one axis.
  *
  * The figures take the table's own size rather than a step down. They are money
  * in the column next to money, and a 13px amount beside a 14px one reads as a
@@ -231,7 +235,10 @@ function StakedCell({
   rail: React.ReactNode;
 }) {
   return (
-    <div className="inline-flex flex-col">
+    <div className="flex flex-col items-center">
+      {/* A flex line, not inline text: the gap spaces the figures from the
+          words without leaving a trailing margin, which would push the line
+          off the centre by half of itself. */}
       <span className="tnum flex items-baseline gap-1.5 whitespace-nowrap">
         {children}
       </span>
@@ -240,20 +247,20 @@ function StakedCell({
   );
 }
 
-/** The connective tissue between figures — "each", "vs". A step below them so
+/** The words between and after the figures — "each", "vs". A step below them so
  *  the eye lands on the money first; spacing comes from the line's gap. */
 function Word({ children }: { children: React.ReactNode }) {
-  return <span className="text-[12.5px] text-faint">{children}</span>;
+  return <span className="text-meta text-faint">{children}</span>;
 }
 
 /**
- * The split, drawn the width of the figures above it.
+ * The split, at one fixed length on every row — the same length as the Volume
+ * rail beside it.
  *
- * Volume's rail keeps a fixed width and this one does not, because they measure
- * different things. Volume's is a share of the largest row on screen, so its
- * track is the scale and has to be identical on every row or the lengths stop
- * being comparable. This one is a ratio inside its own row; nothing compares
- * across rows, so the width is free to say which figures it belongs to.
+ * Fixed, because nothing about this bar is a measurement. It is a ratio inside
+ * its own row, and only where the two segments meet carries information; a
+ * length that changed row to row would invite a comparison the figures cannot
+ * support, and would break the one axis the column has.
  *
  * The two segments are chroma-matched by design, so they sit at 1.02:1 against
  * each other — the split is invisible without colour vision. The gap makes it
@@ -265,20 +272,22 @@ function Word({ children }: { children: React.ReactNode }) {
 function Rail({ shareA, quiet }: { shareA?: number; quiet?: boolean }) {
   if (shareA === undefined) {
     // Holds the row's height open so the figures above it stay on the baseline.
-    return <span aria-hidden className="mt-1.5 block h-[3px]" />;
+    return <span aria-hidden className="mt-1.5 block h-[3px] w-16" />;
   }
 
+  // The whole rail fills as one, towards the same edge the figures above it are
+  // anchored to. Animating the two segments separately would read as the split
+  // changing, which is the one thing this mark must never suggest.
   return (
-    <span
-      aria-hidden
-      className={`mt-1.5 flex h-[3px] gap-[2px] ${quiet ? "opacity-25" : ""}`}
+    <GrowRail
+      className={`mt-1.5 flex h-[3px] w-16 gap-[2px] ${quiet ? "opacity-25" : ""}`}
     >
       <span
         style={{ width: `${shareA}%` }}
         className="block h-full rounded-full bg-side-a"
       />
       <span className="block h-full flex-1 rounded-full bg-side-b" />
-    </span>
+    </GrowRail>
   );
 }
 
@@ -325,7 +334,7 @@ function StatusMark({
 
       {side !== null ? (
         <span
-          className={`ml-2 text-[12px] ${
+          className={`ml-2 text-meta ${
             side === "A" ? "text-side-a" : "text-side-b"
           }`}
         >
@@ -336,7 +345,7 @@ function StatusMark({
           href={`${POLYGONSCAN}${winner}`}
           target="_blank"
           rel="noreferrer noopener"
-          className="ml-2 font-mono text-[12px] text-faint transition-colors hover:text-muted"
+          className="ml-2 font-mono text-meta text-faint transition-colors hover:text-muted"
         >
           won by {shortAddress(winner)}
         </a>
