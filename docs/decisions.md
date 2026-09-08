@@ -95,6 +95,16 @@ Method and evidence in `subgraph/README.md`.
 - `allow_legacy_proofs: false` in the claim flow (which lives in the
   app.joinringo.xyz repo). Accepting v3 proofs means one human holds two
   different nullifiers and can claim twice unless the gate stores both.
-- The stats page stays in this repo as `demo/` rather than moving into the
+
+  Confirmed against World's docs after this was written, and it sharpens the
+  decision: `selfieCheckLegacy` is **itself the v3 preset**, and
+  `allow_legacy_proofs: true` is what lets World App satisfy such a request
+  with a v3 proof. So picking that preset and setting the flag to `false` are
+  in tension, and the preset is the half to revisit. `worldid-gate` enforces
+  the decision from its own side regardless: it refuses
+  `protocol_version: "3.0"` unless `GATE_ALLOW_LEGACY_PROOFS=true` is set
+  explicitly, so a claim flow that quietly starts sending legacy proofs is
+  refused rather than silently double-crediting.
+- The stats page stays in this repo, at the root, rather than moving into the
   production app: it reads only from the subgraph, so it is the artifact a
   judge can run to check that the index is load-bearing.

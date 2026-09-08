@@ -57,7 +57,7 @@ inside it.
 | --------------- | -------------------------------------------------------------------- |
 | `src/`          | The Next.js app — the public market index                            |
 | `subgraph/`     | The subgraph. Start here: [`subgraph/README.md`](subgraph/README.md) |
-| `worldid-gate/` | The verification service. Contract documented, not yet built         |
+| `worldid-gate/` | The verification service. Zero dependencies, 31 tests, fails closed  |
 | `abi/`          | Contract ABIs                                                        |
 | `docs/`         | Disclosure, AI use, decisions log, World feedback                    |
 
@@ -65,8 +65,17 @@ inside it.
 
 ```bash
 npm install
-cp .env.example .env.local   # fill SUBGRAPH_URL
+cp .env.example .env.local
 npm run dev
+```
+
+`.env.example` already carries a working query URL, so this runs with no
+further setup. The subgraph is public and the Studio endpoint takes no API key.
+
+The gate is a second, independent service with nothing to install:
+
+```bash
+cd worldid-gate && npm test && node src/server.js
 ```
 
 ```bash
@@ -105,7 +114,8 @@ src/
     error.tsx             what a judge sees when the subgraph is resyncing
     not-found.tsx, loading.tsx, layout.tsx, globals.css, icon.svg
   components/
-    stats-sections.tsx    hero, markets table, traders table — server-rendered
+    stats/                hero, KPI row, markets table, traders table, chart
+    layout/, motion/, ui/, visual/
   lib/
     env.ts                server-only, fails fast naming the missing variable
     format.ts             USDC 6-decimal formatting in bigint
