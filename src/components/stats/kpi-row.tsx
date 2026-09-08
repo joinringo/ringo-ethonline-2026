@@ -86,7 +86,18 @@ function Figure({
   // rounds its own top corners instead.
   // `h-full` on both: the grid now stretches the reveal wrapper, not the card.
   return (
-    <RevealItem lift className="h-full">
+    // The hover z-index is what lets the bubble out. Motion leaves
+    // `filter: blur(0px)` on this element once the reveal has run, and a
+    // filter other than `none` creates a stacking context even at zero blur —
+    // so the bubble’s own z-index only ever competed inside its own card, and
+    // the next card in the DOM painted straight over it. The card has to
+    // outrank its siblings, and the card is the element that owns the
+    // stacking context. `focus-within` covers the keyboard path, where there
+    // is no hover to help.
+    <RevealItem
+      lift
+      className="relative z-0 h-full hover:z-20 focus-within:z-20"
+    >
       <Card className="h-full p-4">
         {accent ? (
           <span
@@ -94,18 +105,21 @@ function Figure({
             className="holo-line absolute inset-x-0 top-0 h-px rounded-t-xl"
           />
         ) : null}
-        <dt className="font-label text-[11px] tracking-[0.04em] text-faint uppercase sm:text-[12px]">
+        {/* The anchor for the hint bubble: `Info` positions against the
+            nearest positioned ancestor and spans it, so the bubble comes out
+            the width of the card and drops just under this line. */}
+        <dt className="relative font-label text-micro tracking-[0.04em] text-faint uppercase">
           {label}
           {hint ? <Info>{hint}</Info> : null}
         </dt>
         <dd
-          className={`tnum mt-3 text-[24px] leading-none font-medium tracking-[-0.02em] sm:text-[27px] ${
+          className={`tnum mt-3 text-figure leading-none font-medium tracking-[-0.02em] sm:text-[1.75rem] ${
             accent ? "holo-text" : "text-ink"
           }`}
         >
           {value}
         </dd>
-        <p className="mt-2 text-[13px] text-muted">{note}</p>
+        <p className="mt-2 text-meta leading-snug text-muted">{note}</p>
       </Card>
     </RevealItem>
   );
