@@ -26,7 +26,7 @@ const COLUMNS: ColumnNote[] = [
   },
   {
     term: "Sides",
-    note: "What each side staked. The two never have to match: a bet at even money is 1 against 1, and a lopsided one is where the price lives — $3 against $1 is the market pricing that outcome at roughly 3 to 1. Blank for the v1-era markets that were stubbed from a resolution with no fill we decode.",
+    note: "What each side staked. Nearly every Ringo is matched at even money, so this usually reads Even — the split is shown only when the two sides put in different amounts, which is where a price lives: $42 against $191 is the market calling that outcome roughly four to one. Blank for the v1-era markets stubbed from a resolution with no fill we decode.",
   },
   {
     term: "Opened",
@@ -139,6 +139,20 @@ function SideSplit({
   const b = BigInt(fill.amountB);
   const total = a + b;
 
+  // Ringo is overwhelmingly matched at even money — 8,480 of 8,779 fills are
+  // exactly 50/50 — so printing the same figure twice is what this column would
+  // do on almost every row, and two identical amounts read as a rendering bug
+  // rather than as data. Saying "even" once is both shorter and truer, and it
+  // leaves the split to mean something on the rows where it differs.
+  if (a === b) {
+    return (
+      <span className="text-[13px] whitespace-nowrap">
+        <span className="text-muted">Even</span>
+        <span className="tnum ml-1.5 text-faint">${formatUsdc(a)} a side</span>
+      </span>
+    );
+  }
+
   // Percent in bigint, then to a number once: the ratio survives amounts that
   // would lose precision as floats.
   const shareA =
@@ -151,12 +165,18 @@ function SideSplit({
         <span className="mx-1 text-faint">vs</span>
         <span className="text-side-b">${formatUsdc(b)}</span>
       </span>
+      {/* The two segments are chroma-matched by design, so they sit at 1.02:1
+          against each other — the split is invisible without colour vision.
+          The gap makes it legible in greyscale. */}
       <span
         aria-hidden
-        className="flex h-[3px] w-20 overflow-hidden rounded-full"
+        className="flex h-[3px] w-20 gap-[2px] overflow-hidden rounded-full"
       >
-        <span style={{ width: `${shareA}%` }} className="block h-full bg-side-a/80" />
-        <span className="block h-full flex-1 bg-side-b/80" />
+        <span
+          style={{ width: `${shareA}%` }}
+          className="block h-full rounded-full bg-side-a/80"
+        />
+        <span className="block h-full flex-1 rounded-full bg-side-b/80" />
       </span>
     </div>
   );

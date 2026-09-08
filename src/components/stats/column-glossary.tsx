@@ -16,7 +16,9 @@ export function ColumnGlossary({ items }: { items: ColumnNote[] }) {
     // Sits between the section head and the table, so it borders below only —
     // the head already draws the rule above it.
     <details className="group border-b border-hairline">
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-3 text-[12.5px] text-faint transition-colors hover:text-muted">
+      {/* muted, not faint: this is the only control in the card and it has to
+          read as one. faint is for labels that sit still. */}
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-3 text-[12.5px] font-medium text-muted transition-colors hover:text-ink">
         What these columns mean
         <svg
           viewBox="0 0 16 16"
