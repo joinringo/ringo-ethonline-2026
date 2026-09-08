@@ -82,7 +82,7 @@ function Figure({
   // No `overflow-hidden`: it would clip the hint bubble. The accent rule
   // rounds its own top corners instead.
   return (
-    <Card className="relative p-4 transition-colors duration-200 hover:border-hairline/60 hover:bg-raised/50">
+    <Card className="p-4">
       {accent ? (
         <span
           aria-hidden

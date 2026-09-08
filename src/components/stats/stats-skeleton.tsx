@@ -9,15 +9,12 @@ export function StatsSkeleton() {
           <div className="skeleton h-9 w-[70%]" />
           <div className="skeleton mt-3 h-3.5 w-[80%] max-w-[420px]" />
         </div>
-        <div className="skeleton h-[260px] w-full rounded-xl" />
+        <div className="holo-card skeleton-block h-[260px] w-full rounded-xl" />
       </section>
 
       <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5">
         {Array.from({ length: 5 }, (_, index) => (
-          <div
-            key={index}
-            className="rounded-xl border border-hairline bg-surface/70 p-4"
-          >
+          <div key={index} className="holo-card rounded-xl p-4">
             <div className="skeleton h-2.5 w-20" />
             <div className="skeleton mt-4 h-7 w-24" />
             <div className="skeleton mt-3 h-2.5 w-16" />
@@ -25,8 +22,8 @@ export function StatsSkeleton() {
         ))}
       </div>
 
-      <div className="skeleton h-[220px] w-full rounded-xl" />
-      <div className="skeleton h-[380px] w-full rounded-xl" />
+      <div className="holo-card skeleton-block h-[220px] w-full rounded-xl" />
+      <div className="holo-card skeleton-block h-[380px] w-full rounded-xl" />
       <span className="sr-only">Reading the index…</span>
     </div>
   );

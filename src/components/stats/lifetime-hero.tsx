@@ -1,5 +1,5 @@
 import { Card } from "@/components/ui/card";
-import { CopyButton } from "@/components/ui/copy-button";
+import { QueryPanel } from "@/components/ui/query-panel";
 import { formatRelativeDay } from "@/lib/format";
 import type { LifetimeTotals } from "@/lib/subgraph/stats";
 
@@ -49,35 +49,15 @@ export function LifetimeHero({
       </div>
 
       <Card className="overflow-hidden">
-        <div className="flex items-center justify-between gap-3 border-b border-hairline bg-raised/40 px-4 py-2.5">
-          <div className="flex min-w-0 items-center gap-2">
-            <span aria-hidden className="flex shrink-0 gap-1.5">
-              <Dot className="bg-side-b/70" />
-              <Dot className="bg-mark/70" />
-              <Dot className="bg-resolved/70" />
-            </span>
-            <p className="ml-1 truncate font-mono text-[12px] text-muted">
-              lifetime.graphql
-            </p>
-          </div>
-          <CopyButton value={query.trim()} label="Copy query" />
-        </div>
-
-        <pre className="overflow-x-auto px-4 py-4 font-mono text-[12px] leading-[1.75] text-ink/90">
-          <code>{query.trim()}</code>
-        </pre>
-
-        <p className="border-t border-hairline px-4 py-3 text-[12.5px] leading-relaxed text-faint">
-          Volume and fees are folded from daily rows. Active traders is a daily
-          distinct count, so it is deliberately not summed.
-        </p>
+        <QueryPanel
+          queryId="lifetime"
+          query={query}
+          filename="lifetime.graphql"
+          note="Every figure below and the chart under them come from this one request. Volume and fees are folded from the daily rows; active traders is a daily distinct count, so it is deliberately not summed."
+        />
       </Card>
     </section>
   );
-}
-
-function Dot({ className }: { className: string }) {
-  return <span className={`h-2 w-2 rounded-full ${className}`} />;
 }
 
 function SideKey({ color, label }: { color: string; label: string }) {

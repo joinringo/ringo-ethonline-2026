@@ -1,13 +1,13 @@
 @import "tailwindcss";
 
 @theme {
-  --color-ground: #020308;
-  --color-surface: #080a11;
-  --color-raised: #0e111a;
+  --color-ground: #010101;
+  --color-surface: #06070c;
+  --color-raised: #0c0e15;
   --color-overlay: #161a25;
 
-  --color-hairline: #1b202b;
-  --color-hairline-soft: #12151d;
+  --color-hairline: #171b24;
+  --color-hairline-soft: #0f1219;
 
   --color-ink: #e8ebf4;
   --color-muted: #8b93a7;
@@ -90,40 +90,71 @@ body {
 }
 
 /* ── Atmosphere ──────────────────────────────────────────────────────────
-   Three layers inside one bounded, clipped box (see HoloBackdrop). The box
-   creates the stacking context the rake blends against, which keeps the
-   dodge off the rest of the page and off the table rows entirely.
+   Copied from ringo-marketing's app/globals.css so the two surfaces are the
+   same background, not a lookalike. The rake, the grid fade and the drifts
+   below are verbatim; the components that use them are in
+   components/visual/, also copied.
    ───────────────────────────────────────────────────────────────────────── */
 
-/* The atmosphere, and it is the reason the rake has anything to amplify.
-   ringo-marketing runs a WebGL fog here and falls back to exactly this on
-   low-power devices: the same two presences as stacked radial gradients, no
-   per-frame work, the drift a compositor transform. The fallback is the whole
-   port — a stats page does not get a shader.
-
-   Two presences, deliberately not chroma-matched: indigo upper-right carries
-   the colour, near-neutral graphite lower-left carries the light. Positions
-   come from ATMO_HERO; the indigo is stronger and bluer than the palette's
-   raw lilac, matched against what the shader actually renders on
-   welcome.joinringo.xyz rather than against the token. */
-.holo-atmo {
-  position: absolute;
-  inset: -6%;
-  background-image:
-    radial-gradient(
-      58% 52% at 86% 16%,
-      rgb(108 120 205 / 0.17),
-      transparent 72%
-    ),
-    radial-gradient(
-      55% 44% at 12% 88%,
-      rgb(94 97 101 / 0.11),
-      transparent 70%
-    );
-  will-change: transform;
-  animation: atmo-drift 36s ease-in-out infinite;
+.grid-fade {
+  -webkit-mask-image: radial-gradient(
+    ellipse 60% 60% at 50% 40%,
+    #000 30%,
+    transparent 80%
+  );
+  mask-image: radial-gradient(
+    ellipse 60% 60% at 50% 40%,
+    #000 30%,
+    transparent 80%
+  );
 }
 
+/* Travels exactly one tile so the loop is seamless, on an oversized child so
+   the mask stays put — as background-position this repainted the whole
+   viewport every frame. */
+@keyframes grid-drift {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(var(--grid-tile), var(--grid-tile), 0);
+  }
+}
+
+.animate-grid-drift {
+  animation: grid-drift 26s linear infinite;
+}
+
+/* Film grain: unifies the image and masks the 8-bit banding every dark
+   gradient on this page would otherwise show. At 2% it never touches text. */
+.grain {
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='0.82' numOctaves='3' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23n)'/></svg>");
+  background-size: 160px 160px;
+  animation: grain-shift 0.7s steps(5) infinite;
+}
+
+@keyframes grain-shift {
+  0% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-4%, 3%);
+  }
+  40% {
+    transform: translate(3%, -5%);
+  }
+  60% {
+    transform: translate(-3%, 4%);
+  }
+  80% {
+    transform: translate(4%, -2%);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+/* Drift for the CSS atmosphere fallback (no-WebGL devices). */
 @keyframes atmo-drift {
   0%,
   100% {
@@ -134,105 +165,66 @@ body {
   }
 }
 
-/* Quiet frame: the outer band holds the static floor, so the drifting layer
-   never moves the edges. */
-.holo-atmo-frame {
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(
-      to right,
-      var(--color-ground),
-      transparent 15%,
-      transparent 85%,
-      var(--color-ground)
-    ),
-    linear-gradient(
-      to bottom,
-      transparent 84%,
-      var(--color-ground)
-    );
-}
-
-/* Grid values are ringo-marketing's: 72px tiles, the container at 0.07, and
-   the fade centred at 40% height so the hairlines read across the middle band
-   rather than only under the header. */
-.holo-grid {
-  background-image:
-    linear-gradient(to right, #ffffff90 1px, transparent 1px),
-    linear-gradient(to bottom, #ffffff 1px, transparent 1px);
-  background-size: 72px 72px;
-  opacity: 0.07;
-  -webkit-mask-image: radial-gradient(
-    ellipse 60% 60% at 50% 40%,
-    #000 30%,
-    transparent 80%
-  );
-  mask-image: radial-gradient(
-    ellipse 60% 60% at 50% 40%,
-    #000 30%,
-    transparent 80%
-  );
+.animate-atmo-drift {
+  animation: atmo-drift 36s ease-in-out infinite;
 }
 
 .holo-wash {
   background: var(--gradient-holo);
   opacity: 0.075;
   -webkit-mask-image: radial-gradient(
-    110% 110% at 62% -16%,
+    115% 130% at 62% -12%,
     #000 0%,
-    rgba(0, 0, 0, 0.45) 38%,
-    transparent 72%
+    rgba(0, 0, 0, 0.5) 42%,
+    transparent 78%
   );
   mask-image: radial-gradient(
-    110% 110% at 62% -16%,
+    115% 130% at 62% -12%,
     #000 0%,
-    rgba(0, 0, 0, 0.45) 38%,
-    transparent 72%
+    rgba(0, 0, 0, 0.5) 42%,
+    transparent 78%
   );
+  filter: hue-rotate(1deg) saturate(1.1);
 }
 
-/* Raking light, ported unchanged. color-dodge amplifies the backdrop instead
-   of painting on it, so the band only appears where the atmosphere and the
-   grid already put something — the presences below are its fuel, and without
-   them it returns neutral light on a neutral ground.
-
-   The animation is transform-only and the layer is promoted, so a frame costs
-   a composite and never a repaint or a re-blend of the page. The box that
-   clips it is 720px tall and absolute, so scrolling past the hero takes the
-   whole effect off-screen and the cost goes to zero. */
+/* Raking light for engraved type. color-dodge amplifies the backdrop instead
+   of painting on it, so pure black stays black and the band only appears where
+   the atmosphere already put something. */
 .holo-rake {
   position: absolute;
   top: -30%;
   bottom: -30%;
   left: 0;
   width: 42%;
+  pointer-events: none;
   background: var(--gradient-holo);
   background-size: 220% 220%;
-  background-position: 50% 50%;
   mix-blend-mode: color-dodge;
   opacity: 0.26;
-  -webkit-mask-image: linear-gradient(
-    90deg,
-    transparent,
-    #000 38%,
-    #000 62%,
-    transparent
-  );
-  mask-image: linear-gradient(
-    90deg,
-    transparent,
-    #000 38%,
-    #000 62%,
-    transparent
-  );
-  will-change: transform;
+  /* Two mask layers, intersected. The horizontal one is the original band.
+     The vertical one is this page's addition: the backdrop ends partway down a
+     long document, and without it the band's bottom edge is a hard line across
+     the page while it crosses.
+
+     The stops are tied to the geometry above. The band runs -30%..130% of the
+     backdrop, so the backdrop's own bottom edge falls at 81% of this element —
+     the fade has to be finished before that, or overflow clips a band that is
+     still lit. That is the whole reason for 72%. */
+  -webkit-mask-image:
+    linear-gradient(90deg, transparent, #000 38%, #000 62%, transparent),
+    linear-gradient(180deg, #000 28%, transparent 72%);
+  -webkit-mask-composite: source-in;
+  mask-image:
+    linear-gradient(90deg, transparent, #000 38%, #000 62%, transparent),
+    linear-gradient(180deg, #000 28%, transparent 72%);
+  mask-composite: intersect;
+  /* Transform alone keeps the band on the compositor, so the blend is composed
+     rather than re-rastered. */
+  background-position: 50% 50%;
   transform: translateX(-130%) skewX(-9deg);
   animation: holo-rake 12.4s cubic-bezier(0.45, 0, 0.55, 1) infinite;
 }
 
-/* Crosses in the first 71%, then waits off-frame. The pause is what keeps it
-   an occurrence rather than a running loop. */
 @keyframes holo-rake {
   0% {
     transform: translateX(-130%) skewX(-9deg);
@@ -241,6 +233,78 @@ body {
   100% {
     transform: translateX(330%) skewX(-9deg);
   }
+}
+
+/* ── Card surface ────────────────────────────────────────────────────────
+   ringo-marketing's .holo-card, copied. The radial lift is the fuel for the
+   foil above it, not decoration. The sheen transitions on opacity only: that
+   goes to the compositor, where a hue drift on a filter would re-raster the
+   whole masked layer every frame.
+   ───────────────────────────────────────────────────────────────────────── */
+
+:root {
+  --card-top: #050609;
+  --card-mid: #030405;
+  --card-bottom: #010203;
+  --card-foil: 0.13;
+  --card-foil-hover: 0.22;
+}
+
+.holo-card {
+  position: relative;
+  border: 1px solid rgb(255 255 255 / 0.07);
+  background:
+    radial-gradient(
+      118% 170% at 10% 0%,
+      rgb(255 255 255 / 0.024) 0%,
+      rgb(255 255 255 / 0) 56%
+    ),
+    linear-gradient(
+      180deg,
+      var(--card-top) 0%,
+      var(--card-mid) 44%,
+      var(--card-bottom) 100%
+    );
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.028),
+    0 1px 2px rgb(0 0 0 / 0.5),
+    0 10px 26px -14px rgb(0 0 0 / 0.85);
+  transition: border-color 0.35s ease;
+}
+
+.holo-card::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: var(--card-foil);
+  transition: opacity 0.35s ease;
+  background: repeating-linear-gradient(
+    112deg,
+    rgba(144, 241, 241, 0.171) 0%,
+    rgba(255, 255, 255, 0) 11%,
+    rgba(233, 208, 237, 0.221) 22%,
+    rgba(255, 255, 255, 0) 33%,
+    rgba(157, 185, 252, 0.207) 44%,
+    rgba(255, 255, 255, 0) 55%,
+    rgba(144, 241, 241, 0.24) 66%
+  );
+  -webkit-mask-image: radial-gradient(
+    110% 150% at 10% 0%,
+    #000 0%,
+    rgba(0, 0, 0, 0.55) 44%,
+    transparent 90%
+  );
+  mask-image: radial-gradient(
+    110% 150% at 10% 0%,
+    #000 0%,
+    rgba(0, 0, 0, 0.55) 44%,
+    transparent 90%
+  );
+}
+
+.holo-card:hover::before {
+  opacity: var(--card-foil-hover);
 }
 
 /* ── Foil on content ─────────────────────────────────────────────────────── */
@@ -280,14 +344,24 @@ body {
   }
 }
 
-.skeleton {
+/* Two shapes of placeholder. `.skeleton` is a text-sized bar, translucent so
+   it lifts whatever surface it sits on rather than painting a fixed grey that
+   only matches one of them. `.skeleton-block` stands in for a whole card and
+   carries no fill of its own — it is combined with .holo-card, so the loading
+   state and the loaded state are the same surface. */
+.skeleton,
+.skeleton-block {
   position: relative;
   overflow: hidden;
-  background-color: var(--color-raised);
+}
+
+.skeleton {
+  background-color: rgb(255 255 255 / 0.045);
   border-radius: 6px;
 }
 
-.skeleton::after {
+.skeleton::after,
+.skeleton-block::after {
   content: "";
   position: absolute;
   inset: 0;
@@ -295,7 +369,7 @@ body {
   background: linear-gradient(
     90deg,
     transparent,
-    rgb(255 255 255 / 0.06),
+    rgb(255 255 255 / 0.05),
     transparent
   );
   animation: shimmer 1.6s infinite;

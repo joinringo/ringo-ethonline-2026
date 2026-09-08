@@ -27,7 +27,12 @@ export type AtmoStop = {
    carries the light, the upper-right one carries the colour. */
 
 // Near-neutral: only enough blue left to keep it from reading as dirty white.
-const HOLO_GRAPHITE = [0.37, 0.38, 0.395] as const
+//
+// Halved from ringo-marketing's 0.37/0.38/0.395. This presence is the lower-left
+// one and the shader gives it uIntensity * 1.4 against the lilac's * 0.6, so it
+// is the page's dominant light. That reads as atmosphere behind a type wall and
+// as glare behind a table of figures.
+const HOLO_GRAPHITE = [0.19, 0.2, 0.215] as const
 // the foil's lilac pole (#d3ccf0) — the calm counterweight
 const HOLO_LILAC = [0.6, 0.56, 0.74] as const
 

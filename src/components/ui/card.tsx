@@ -7,7 +7,7 @@ export function Card({
 }) {
   return (
     <div
-      className={`rounded-xl border border-hairline bg-surface/70 ${className}`}
+      className={`holo-card rounded-xl ${className}`}
     >
       {children}
     </div>
