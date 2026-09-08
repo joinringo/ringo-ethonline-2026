@@ -1,0 +1,35 @@
+{
+  "name": "ringo-ethonline-2026",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "subgraph:install": "npm --prefix subgraph install",
+    "subgraph:codegen": "npm --prefix subgraph run codegen",
+    "subgraph:build": "npm --prefix subgraph run build",
+    "subgraph:test": "npm --prefix subgraph run test",
+    "subgraph:deploy": "npm --prefix subgraph run deploy",
+    "subgraph:start-block": "npm --prefix subgraph run start-block"
+  },
+  "dependencies": {
+    "next": "^16.3.4",
+    "react": "^19.2.8",
+    "react-dom": "^19.2.8",
+    "server-only": "^0.0.1"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.3.3",
+    "@types/node": "^22.20.1",
+    "@types/react": "^19.2.18",
+    "@types/react-dom": "^19.2.7",
+    "eslint": "^9",
+    "eslint-config-next": "^16.3.4",
+    "tailwindcss": "^4.3.3",
+    "typescript": "^5.9.3"
+  }
+}

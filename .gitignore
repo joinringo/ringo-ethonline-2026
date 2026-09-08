@@ -1,0 +1,19 @@
+# Next
+node_modules/
+.next/
+out/
+next-env.d.ts
+*.tsbuildinfo
+
+# Subgraph
+subgraph/build/
+subgraph/generated/
+
+# Secrets — the World RP signing key and the Studio deploy key never land here
+.env
+.env.local
+.env.*.local
+!.env.example
+
+.DS_Store
+*.log
