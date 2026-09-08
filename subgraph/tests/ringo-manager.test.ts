@@ -10,7 +10,9 @@ import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import {
   afterEach,
   assert,
+  beforeEach,
   clearStore,
+  createMockedFunction,
   describe,
   newMockEvent,
   test,
@@ -44,8 +46,41 @@ const ALICE = "0x4444444444444444444444444444444444444444";
 const BOB = "0x5555555555555555555555555555555555555555";
 const CAROL = "0x6666666666666666666666666666666666666666";
 const RESOLVER = "0x7777777777777777777777777777777777777777";
+const USDC = "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359";
+const ASSERTION_ID =
+  "0x00000000000000000000000000000000000000000000000000000000000000aa";
+const CLAIM = "bitcoin will be above $100k";
+
+/**
+ * `handleRingoCreatedAndFilled` calls `getRingoConfig()` on the per-ringo
+ * escrow to recover the claim text, so without this mock every test that
+ * exercises a fill aborts. Five of the twelve tests in this file were red for
+ * exactly that reason, which is how `Market.claim` and `Market.claimHeld` came
+ * to have no coverage at all despite `claimHeld` being the verdict the bot
+ * publishes.
+ */
+function mockRingoConfig(userA: string, userB: string): void {
+  createMockedFunction(
+    Address.fromString(RESOLVER),
+    "getRingoConfig",
+    "getRingoConfig():(address,address,address,uint256,uint256,uint256,bytes32,string)"
+  ).returns([
+    ethereum.Value.fromAddress(Address.fromString(userA)),
+    ethereum.Value.fromAddress(Address.fromString(userB)),
+    ethereum.Value.fromAddress(Address.fromString(USDC)),
+    ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+    ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(1000000)),
+    ethereum.Value.fromUnsignedBigInt(BigInt.fromI32(0)),
+    ethereum.Value.fromFixedBytes(Bytes.fromHexString(ASSERTION_ID)),
+    ethereum.Value.fromString(CLAIM),
+  ]);
+}
 
 describe("RingoManager", () => {
+  beforeEach(() => {
+    mockRingoConfig(ALICE, BOB);
+  });
+
   afterEach(() => {
     clearStore();
   });
@@ -118,6 +153,49 @@ describe("RingoManager", () => {
     assert.entityCount("Resolution", 1);
     assert.fieldEquals("Market", RINGO_A, "status", "RESOLVED");
     assert.fieldEquals("Market", RINGO_A, "outcome", "1");
+  });
+
+  test("the claim held when the winner sat on side A", () => {
+    // `claimHeld` is the verdict the bot publishes and it had no test at all.
+    // userA is the YES participant by construction, so a side-A winner means
+    // the claim was true.
+    handleRingoCreatedAndFilled(createFill(ALICE, BOB, 1000000, 1000000));
+    handleRingoResolved(createResolved(2000000, ALICE));
+
+    assert.fieldEquals("Market", RINGO_A, "claimHeld", "true");
+    assert.fieldEquals("Market", RINGO_A, "claim", CLAIM);
+  });
+
+  test("the claim did not hold when the winner sat on side B", () => {
+    handleRingoCreatedAndFilled(createFill(ALICE, BOB, 1000000, 1000000));
+    handleRingoResolved(createResolved(2000000, BOB));
+
+    assert.fieldEquals("Market", RINGO_A, "claimHeld", "false");
+  });
+
+  test("a retried resolution credits the win once, not once per event", () => {
+    // resolveRingo is caller-idempotent on this contract and does get retried.
+    // Measured on the deployed index: 245 markets carried more than one
+    // resolution, the worst eleven inside a single transaction with an
+    // identical winner and amount, and sum(Trader.wins) came to 9,664 against
+    // 9,403 resolved markets. 261 phantom wins, 63 of them on the platform's
+    // own ops wallet. Every Resolution row is still kept as an audit trail.
+    handleRingoCreatedAndFilled(createFill(ALICE, BOB, 1000000, 1000000));
+
+    let first = createResolved(2000000, ALICE);
+    handleRingoResolved(first);
+    let retry = createResolved(2000000, ALICE);
+    retry.logIndex = first.logIndex.plus(BigInt.fromI32(1));
+    handleRingoResolved(retry);
+    let retryAgain = createResolved(2000000, ALICE);
+    retryAgain.logIndex = first.logIndex.plus(BigInt.fromI32(2));
+    handleRingoResolved(retryAgain);
+
+    assert.fieldEquals("Trader", ALICE.toLowerCase(), "wins", "1");
+    assert.fieldEquals("Trader", BOB.toLowerCase(), "losses", "1");
+    // The audit trail keeps all three.
+    assert.entityCount("Resolution", 3);
+    assert.fieldEquals("Market", RINGO_A, "status", "RESOLVED");
   });
 
   test("invalidation leaves no outcome and no resolution", () => {

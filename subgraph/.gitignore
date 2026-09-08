@@ -7,3 +7,6 @@ generated/
 
 # matchstick writes this after each run
 tests/.latest.json
+
+# matchstick binary cache
+tests/.bin/
