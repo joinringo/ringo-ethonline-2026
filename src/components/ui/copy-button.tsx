@@ -2,13 +2,20 @@
 
 import { useEffect, useState } from "react";
 
-/** The only client component on the page. */
+/**
+ * `bare` is the same button without its chrome: an icon alone, for sitting
+ * inside a line of text where a bordered control would outweigh the value it
+ * copies. The negative margin gives it a touch target without adding height to
+ * the row it sits in.
+ */
 export function CopyButton({
   value,
   label = "Copy",
+  bare = false,
 }: {
   value: string;
   label?: string;
+  bare?: boolean;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -33,10 +40,14 @@ export function CopyButton({
       type="button"
       onClick={copy}
       aria-label={copied ? "Copied" : label}
-      className="flex items-center gap-1.5 rounded-md border border-hairline bg-raised/60 px-2.5 py-1.5 text-meta font-medium text-muted transition-colors hover:border-holo/50 hover:text-ink"
+      className={
+        bare
+          ? "-m-1 inline-flex shrink-0 items-center rounded p-1 text-faint transition-colors hover:text-holo"
+          : "flex items-center gap-1.5 rounded-md border border-hairline bg-raised/60 px-2.5 py-1.5 text-meta font-medium text-muted transition-colors hover:border-holo/50 hover:text-ink"
+      }
     >
       {copied ? (
-        <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden>
+        <svg viewBox="0 0 16 16" className={bare ? "h-3 w-3" : "h-3.5 w-3.5"} aria-hidden>
           <path
             d="M3 8.5 6.2 11.7 13 5"
             fill="none"
@@ -47,7 +58,7 @@ export function CopyButton({
           />
         </svg>
       ) : (
-        <svg viewBox="0 0 16 16" className="h-3.5 w-3.5" aria-hidden>
+        <svg viewBox="0 0 16 16" className={bare ? "h-3 w-3" : "h-3.5 w-3.5"} aria-hidden>
           <rect
             x="5.5"
             y="5.5"
@@ -67,7 +78,7 @@ export function CopyButton({
           />
         </svg>
       )}
-      {copied ? "Copied" : label}
+      {bare ? null : copied ? "Copied" : label}
     </button>
   );
 }

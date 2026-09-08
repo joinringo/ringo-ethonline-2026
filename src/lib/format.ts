@@ -95,3 +95,15 @@ export function formatRate(part: bigint, whole: bigint): string | null {
   const basisPoints = Number((part * 10_000n) / whole);
   return `${(basisPoints / 100).toFixed(2)}%`;
 }
+
+/**
+ * Sentence case for a claim, first letter only.
+ *
+ * Claims arrive from the contract as the user typed them, which is almost
+ * always lower case — "apple announces a new iphone product in 1 hour". This
+ * is presentation, not a correction: the rest of the string is left exactly as
+ * written, so a claim that starts with a figure or a symbol is untouched.
+ */
+export function sentenceCase(text: string): string {
+  return text.charAt(0).toUpperCase() + text.slice(1);
+}

@@ -1,9 +1,11 @@
 import "server-only";
 import { querySubgraph } from "./client";
 import {
+  CLAIM_VERDICTS_QUERY,
   LIFETIME_QUERY,
   TOP_MARKETS_QUERY,
   TOP_TRADERS_QUERY,
+  type ClaimVerdictsResponse,
   type LifetimeResponse,
   type Market,
   type TopMarketsResponse,
@@ -48,6 +50,7 @@ export type StatsPageData = {
   series: DailyPoint[];
   markets: Market[];
   traders: Trader[];
+  verdicts: ClaimVerdicts;
   /**
    * What was asked for, echoed back so a caller can tell a full page from a
    * short one. A list shorter than its limit is the end of the data, and that
@@ -169,12 +172,55 @@ function buildSeries(days: LifetimeResponse["dailyStats"]): DailyPoint[] {
   return points;
 }
 
+
+/**
+ * How the resolved claims turned out.
+ *
+ *  is not a rounding remainder: those are resolutions whose fill
+ * predates this index, so there is no pair to place the winner against and the
+ * verdict is genuinely unavailable. They are excluded from the share and
+ * reported separately, because folding them into either side would invent an
+ * answer the chain never gave.
+ */
+export type ClaimVerdicts = {
+  held: number;
+  broken: number;
+  unknown: number;
+};
+
+const VERDICT_PAGE = 1000;
+/** Six pages covers the index today; the guard is against an unbounded loop. */
+const VERDICT_MAX_PAGES = 40;
+
+async function foldVerdicts(): Promise<ClaimVerdicts> {
+  let held = 0;
+  let broken = 0;
+  let unknown = 0;
+  let after = "";
+
+  for (let page = 0; page < VERDICT_MAX_PAGES; page += 1) {
+    const batch = await querySubgraph<ClaimVerdictsResponse>(
+      CLAIM_VERDICTS_QUERY,
+      { first: VERDICT_PAGE, after }
+    );
+    for (const market of batch.markets) {
+      if (market.claimHeld === true) held += 1;
+      else if (market.claimHeld === false) broken += 1;
+      else unknown += 1;
+    }
+    if (batch.markets.length < VERDICT_PAGE) break;
+    after = batch.markets[batch.markets.length - 1]!.id;
+  }
+
+  return { held, broken, unknown };
+}
+
 export async function getStatsPageData(
   limits: StatsLimits = DEFAULT_LIMITS
 ): Promise<StatsPageData> {
   // The lifetime fold and the chart always read every day. Asking for more
   // table rows must not move the headline figures.
-  const [lifetime, topMarkets, topTraders] = await Promise.all([
+  const [lifetime, topMarkets, topTraders, verdicts] = await Promise.all([
     querySubgraph<LifetimeResponse>(LIFETIME_QUERY, { first: 1000 }),
     querySubgraph<TopMarketsResponse>(TOP_MARKETS_QUERY, {
       first: limits.markets,
@@ -182,6 +228,7 @@ export async function getStatsPageData(
     querySubgraph<TopTradersResponse>(TOP_TRADERS_QUERY, {
       first: limits.traders,
     }),
+    foldVerdicts(),
   ]);
 
   return {
@@ -189,6 +236,7 @@ export async function getStatsPageData(
     series: buildSeries(lifetime.dailyStats),
     markets: topMarkets.markets,
     traders: topTraders.traders,
+    verdicts,
     limits,
   };
 }

@@ -67,15 +67,8 @@ export function LifetimeHero({
       </div>
 
       {/* Last and from further down: the claim lands before its proof.
-
-          `min-w-0` is load-bearing, not tidiness. A grid item's automatic
-          minimum size is its content's min-content width, and the query block
-          inside is `white-space: pre` — 562px of GraphQL that cannot wrap. So
-          the track refused to go under that, the page kept a 584px floor, and
-          every viewport narrower than it scrolled sideways. The sticky header
-          only pins vertically, so it slid off with the document and read as a
-          broken bar. Released, the panel's own `overflow-x-auto` takes the
-          overflow, which is what it was there for. */}
+          `min-w-0` lets the track shrink under the query block's 562px of
+          unwrappable GraphQL — without it the whole page had that floor. */}
       <RevealItem distance={22} className="min-w-0">
         <Card className="overflow-hidden">
           <QueryPanel

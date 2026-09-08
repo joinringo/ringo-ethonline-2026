@@ -46,10 +46,9 @@ const SPRING: Transition = {
 const surface = {
   bare: {
     height: 56,
-    /* Not 1152 (max-w-6xl): the band carries the page's own 20/24px gutter, so
-       the bar has to be that much narrower for the logo to land exactly on the
-       content edge of <main> rather than a gutter to its left. */
-    maxWidth: 1104,
+    /* The page's max-w-[76rem] minus its 24px gutters, so the logo lands on
+       the content edge of <main>. Widen one, widen the other. */
+    maxWidth: 1168,
     paddingLeft: 0,
     paddingRight: 0,
     backgroundColor: "rgba(4, 5, 10, 0)",

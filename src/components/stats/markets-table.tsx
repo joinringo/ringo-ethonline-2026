@@ -2,6 +2,7 @@ import { POLYGONSCAN, RANK, ROW, TD, TH } from "@/components/stats/table";
 import { GrowRail } from "@/components/motion/grow";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Card, SectionHead } from "@/components/ui/card";
+import { CopyButton } from "@/components/ui/copy-button";
 import { Empty } from "@/components/ui/empty";
 import {
   ColumnGlossary,
@@ -10,7 +11,12 @@ import {
 import { Pill } from "@/components/ui/pill";
 import { ShareBar } from "@/components/ui/share-bar";
 import { ShowMore } from "@/components/ui/show-more";
-import { formatDate, formatUsdc, shortAddress } from "@/lib/format";
+import {
+  formatDate,
+  formatUsdc,
+  sentenceCase,
+  shortAddress,
+} from "@/lib/format";
 import type { Market } from "@/lib/subgraph/queries";
 
 const COLUMNS: ColumnNote[] = [
@@ -99,17 +105,13 @@ export function MarketsTable({
                   <td className={RANK}>{index + 1}</td>
                   <td className={`${TD} max-w-[38ch]`}>
                     {market.claim === null ? (
-                      <span className="whitespace-nowrap text-muted">
-                        {shortAddress(market.id)}
-                      </span>
+                      <MarketId id={market.id} className="text-muted" />
                     ) : (
                       <>
                         <span className="line-clamp-2 leading-snug text-ink">
-                          {market.claim}
+                          {sentenceCase(market.claim)}
                         </span>
-                        <span className="mt-1 block font-mono text-[11px] text-faint">
-                          {shortAddress(market.id)}
-                        </span>
+                        <MarketId id={market.id} className="mt-1 text-faint" />
                       </>
                     )}
                   </td>
@@ -375,4 +377,21 @@ function winningSide(
   if (w === fill.userA.id.toLowerCase()) return "A";
   if (w === fill.userB.id.toLowerCase()) return "B";
   return null;
+}
+
+/**
+ * The market's id, with a copy control.
+ *
+ * The button copies the FULL id, not the elided text beside it — a truncated
+ * hash on the clipboard is worse than none, because it looks usable.
+ */
+function MarketId({ id, className = "" }: { id: string; className?: string }) {
+  return (
+    <span
+      className={`flex items-center gap-1.5 font-mono text-[11px] whitespace-nowrap ${className}`}
+    >
+      ID: {shortAddress(id)}
+      <CopyButton value={id} label={`Copy market id ${id}`} bare />
+    </span>
+  );
 }

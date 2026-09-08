@@ -89,6 +89,10 @@ export type Market = {
    * Whether the claim turned out to be true. The contract fixes userA as the
    * YES side, so the winning address settles it. Null while open, for a voided
    * market, and where the fill predates the index.
+   *
+   * Only asking for it against a deployment that has it: an unknown field
+   * fails the whole query, so it takes the page down rather than the column.
+   * That is what `Type \`Market\` has no field \`claimHeld\`` was.
    */
   claimHeld: boolean | null;
   /**
@@ -146,3 +150,31 @@ export type Trader = {
 export type LifetimeResponse = { dailyStats: DailyStat[] };
 export type TopMarketsResponse = { markets: Market[] };
 export type TopTradersResponse = { traders: Trader[] };
+
+/**
+ * Every resolved market's verdict, and nothing else.
+ *
+ * A subgraph has no COUNT, so a share has to be folded from rows.
+ *
+ * Paged on `id_gt` rather than on `skip`, which a subgraph caps at 5000 — the
+ * sixth page of this query is already past it. A cursor has no ceiling, and it
+ * cannot skip or repeat a row when the set grows between pages the way an
+ * offset can. `id` is the cursor because it is unique; `createdAt` ties.
+ */
+export const CLAIM_VERDICTS_QUERY = /* GraphQL */ `
+  query ClaimVerdicts($first: Int = 1000, $after: ID = "") {
+    markets(
+      first: $first
+      where: { status: RESOLVED, id_gt: $after }
+      orderBy: id
+      orderDirection: asc
+    ) {
+      id
+      claimHeld
+    }
+  }
+`;
+
+export type ClaimVerdictsResponse = {
+  markets: { id: string; claimHeld: boolean | null }[];
+};

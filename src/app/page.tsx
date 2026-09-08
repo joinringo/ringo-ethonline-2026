@@ -39,14 +39,17 @@ export default async function StatsPage({
   };
 
   return (
-    <main className="mx-auto max-w-6xl px-5 pt-12 pb-4 sm:px-6 sm:pt-16">
-      {/* The limits are part of the Suspense key: without it React keeps the
-          boundary resolved across the navigation and "show more" sits dead
-          until the new render lands. */}
-      <Suspense
-        key={`${limits.markets}-${limits.traders}`}
-        fallback={<StatsSkeleton />}
-      >
+    <main className="mx-auto max-w-[76rem] px-5 pt-12 pb-4 sm:px-6 sm:pt-16">
+      {/* No key on the boundary, deliberately. Keyed on the limits, every
+          "show more" was a fresh mount: React tore down the hero, the chart and
+          both tables, put the full-page skeleton in their place, and the reader
+          lost the rows they were reading to gain twenty more. Left unkeyed, the
+          boundary stays resolved, React holds the rendered page on screen until
+          the next payload lands and then reconciles the new rows in — the rows
+          already there never unmount, so they neither blank nor replay their
+          reveal. Feedback for the click belongs on the control that was
+          clicked, and lives in components/ui/show-more. */}
+      <Suspense fallback={<StatsSkeleton />}>
         <Stats limits={limits} />
       </Suspense>
     </main>
@@ -54,7 +57,8 @@ export default async function StatsPage({
 }
 
 async function Stats({ limits }: { limits: StatsLimits }) {
-  const { totals, series, markets, traders } = await getStatsPageData(limits);
+  const { totals, series, markets, traders, verdicts } =
+    await getStatsPageData(limits);
 
   return (
     // The ids are the header's anchors and the targets it tracks to mark the
@@ -62,7 +66,7 @@ async function Stats({ limits }: { limits: StatsLimits }) {
     <div className="flex flex-col gap-10">
       <div id="overview" className="flex flex-col gap-10">
         <LifetimeHero totals={totals} query={LIFETIME_QUERY} />
-        <KpiRow totals={totals} />
+        <KpiRow totals={totals} verdicts={verdicts} />
       </div>
       <div id="activity">
         <ActivityChart series={series} />

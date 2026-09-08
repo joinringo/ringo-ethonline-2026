@@ -8,9 +8,21 @@ import {
   formatUsdc,
   formatUsdcCompact,
 } from "@/lib/format";
-import type { LifetimeTotals } from "@/lib/subgraph/stats";
+import type { ClaimVerdicts, LifetimeTotals } from "@/lib/subgraph/stats";
 
-export function KpiRow({ totals }: { totals: LifetimeTotals }) {
+export function KpiRow({
+  totals,
+  verdicts,
+}: {
+  totals: LifetimeTotals;
+  verdicts: ClaimVerdicts;
+}) {
+  // Only the resolutions that carry a verdict are the denominator. Folding the
+  // unknown ones in either direction would answer a question the chain did not.
+  const settled = verdicts.held + verdicts.broken;
+  const heldShare =
+    settled > 0 ? `${Math.round((verdicts.held / settled) * 100)}%` : null;
+
   // Deliberately not fees / volume: most indexed days carry fees against no
   // decodable fill, and that ratio reads several points too high.
   const feeRate = formatRate(totals.feesOnVolumeDays, totals.volume);
@@ -23,7 +35,7 @@ export function KpiRow({ totals }: { totals: LifetimeTotals }) {
     <RevealGroup stagger={0.06}>
       <dl
         aria-label="Lifetime totals"
-        className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-5"
+        className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3"
       >
         <Figure
           label="Settled volume"
@@ -63,6 +75,16 @@ export function KpiRow({ totals }: { totals: LifetimeTotals }) {
           value={formatCount(totals.days)}
           note={`${formatCount(totals.volumeDays)} of them had a fill`}
           hint="Days the index wrote a row for, meaning anything happened — a fill or a fee arriving. Fewer of them carry volume, because fees are indexed from the start block while fills only exist from the block the current creation event starts firing at. Not calendar days since launch."
+        />
+        <Figure
+          label="Claims held"
+          value={heldShare ?? "—"}
+          note={
+            settled > 0
+              ? `${formatCount(verdicts.held)} of ${formatCount(settled)} with a verdict`
+              : "no verdict indexed yet"
+          }
+          hint={`Of the resolved markets, how many claims turned out true. The contract fixes side A as the YES side, so the winning address is the verdict. ${formatCount(verdicts.unknown)} more resolutions are excluded: their fill predates this index, so there is no pair to place the winner against, and counting them as either side would invent an answer the chain never gave.`}
         />
       </dl>
     </RevealGroup>
