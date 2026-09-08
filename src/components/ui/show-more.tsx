@@ -16,16 +16,16 @@ export function ShowMore({
 }) {
   return (
     <div className="flex items-center justify-between gap-4 border-t border-hairline px-5 py-3.5">
-      <span className="text-[12.5px] text-faint">
+      <span className="text-[13px] text-faint">
         Showing {formatCount(shown)} {noun}
       </span>
       {href === null ? (
-        <span className="text-[12.5px] text-faint">End of the index</span>
+        <span className="text-[13px] text-faint">End of the index</span>
       ) : (
         <Link
           href={href}
           scroll={false}
-          className="rounded-full border border-hairline px-3 py-1.5 text-[12.5px] font-medium text-ink transition-colors hover:border-holo/50 hover:bg-raised"
+          className="rounded-full border border-hairline px-3 py-1.5 text-[13px] font-medium text-ink transition-colors hover:border-holo/50 hover:bg-raised"
         >
           Show more
         </Link>

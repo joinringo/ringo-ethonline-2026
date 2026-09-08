@@ -15,13 +15,13 @@ export default function NotFound() {
           <h1 className="text-[24px] leading-tight font-semibold tracking-tight sm:text-[27px]">
             Nothing here
           </h1>
-          <p className="mt-3 max-w-[56ch] text-[14.5px] leading-relaxed text-muted">
+          <p className="mt-3 max-w-[56ch] text-[15px] leading-relaxed text-muted">
             This app has one page: the market index. Everything else lives in
             the Ringo bot on X.
           </p>
           <Link
             href="/"
-            className="holo-fill holo-fill-glow mt-7 inline-flex items-center justify-center rounded-lg px-5 py-3 text-[14px] font-semibold hover:scale-[1.01] active:scale-95"
+            className="holo-fill holo-fill-glow mt-7 inline-flex items-center justify-center rounded-lg px-5 py-3 text-[13px] font-semibold hover:scale-[1.01] active:scale-95"
           >
             Back to the index
           </Link>

@@ -106,7 +106,7 @@ export function TradersTable({
       </div>
 
       {settledAny ? null : (
-        <p className="border-t border-hairline px-5 py-4 text-[12.5px] leading-relaxed text-faint">
+        <p className="border-t border-hairline px-5 py-4 text-[13px] leading-relaxed text-faint">
           Win and loss counts appear once the index reaches a settled market.
           The resolution event names the winner, so the record is real — it is
           simply empty until the sync gets there.

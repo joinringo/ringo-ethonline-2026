@@ -22,13 +22,13 @@ export default function Error({
             The index did not answer
           </h1>
 
-          <p className="mt-3 max-w-[58ch] text-[14.5px] leading-relaxed text-muted">
+          <p className="mt-3 max-w-[58ch] text-[15px] leading-relaxed text-muted">
             The subgraph is either still syncing or the query URL in this
             deployment is wrong. Nothing here is cached from an earlier read, so
             there is no stale figure to show you instead.
           </p>
 
-          <pre className="mt-6 overflow-x-auto rounded-lg border border-hairline bg-ground/70 px-4 py-3 font-mono text-[12.5px] leading-relaxed break-words whitespace-pre-wrap text-side-b">
+          <pre className="mt-6 overflow-x-auto rounded-lg border border-hairline bg-ground/70 px-4 py-3 font-mono text-[13px] leading-relaxed break-words whitespace-pre-wrap text-side-b">
             {error.message}
           </pre>
 
@@ -45,7 +45,7 @@ export default function Error({
           <button
             type="button"
             onClick={reset}
-            className="holo-fill holo-fill-glow mt-7 inline-flex items-center justify-center rounded-lg px-5 py-3 text-[14px] font-semibold hover:scale-[1.01] active:scale-95"
+            className="holo-fill holo-fill-glow mt-7 inline-flex items-center justify-center rounded-lg px-5 py-3 text-[13px] font-semibold hover:scale-[1.01] active:scale-95"
           >
             Read it again
           </button>

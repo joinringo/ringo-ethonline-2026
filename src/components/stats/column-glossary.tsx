@@ -18,7 +18,7 @@ export function ColumnGlossary({ items }: { items: ColumnNote[] }) {
     <details className="group border-b border-hairline">
       {/* muted, not faint: this is the only control in the card and it has to
           read as one. faint is for labels that sit still. */}
-      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-3 text-[12.5px] font-medium text-muted transition-colors hover:text-ink">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-3 text-[13px] font-medium text-muted transition-colors hover:text-holo">
         What these columns mean
         <svg
           viewBox="0 0 16 16"
@@ -42,9 +42,12 @@ export function ColumnGlossary({ items }: { items: ColumnNote[] }) {
         take only its own height and balance the flow, so an odd count costs
         nothing. `break-inside-avoid` keeps a term with its note.
       */}
-      <dl className="border-t border-hairline-soft px-5 py-4 text-[12.5px] leading-relaxed sm:columns-2 sm:gap-10">
+      <dl className="border-t border-hairline-soft px-5 py-4 text-[13px] leading-relaxed sm:columns-2 sm:gap-9 sm:[column-rule:1px_solid_var(--color-hairline)]">
         {items.map((item) => (
-          <div key={item.term} className="mb-3.5 break-inside-avoid">
+          <div
+            key={item.term}
+            className="mb-3.5 border-b border-hairline pb-3.5 break-inside-avoid"
+          >
             <dt className="font-medium text-ink">{item.term}</dt>
             <dd className="mt-0.5 text-muted">{item.note}</dd>
           </div>

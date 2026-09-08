@@ -17,7 +17,7 @@ export function Info({
       <span
         tabIndex={0}
         role="note"
-        className="flex h-4 w-4 cursor-help items-center justify-center rounded-full border border-hairline text-[10px] leading-none font-medium text-faint transition-colors group-hover/info:border-muted group-hover/info:text-muted focus-visible:border-holo focus-visible:text-holo focus-visible:outline-none"
+        className="flex h-[18px] w-[18px] cursor-help items-center justify-center rounded-full border border-hairline text-[11px] leading-none font-medium text-faint transition-colors group-hover/info:border-muted group-hover/info:text-muted focus-visible:border-holo focus-visible:text-holo focus-visible:outline-none"
       >
         ?
       </span>

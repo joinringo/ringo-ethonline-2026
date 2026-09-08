@@ -23,7 +23,7 @@ export function ActivityChart({ series }: { series: DailyPoint[] }) {
         title="Daily settled volume"
         note={`Last ${series.length} days ending on the most recent indexed day. ${active} of them had a fill.`}
         aside={
-          <p className="tnum text-right text-[12.5px] text-muted">
+          <p className="tnum text-right text-[13px] text-muted">
             Peak{" "}
             <span className="font-medium text-ink">
               ${formatUsdc(peak, { decimals: 0 })}

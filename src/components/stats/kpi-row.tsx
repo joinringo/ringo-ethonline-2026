@@ -100,7 +100,7 @@ function Figure({
       >
         {value}
       </dd>
-      <p className="mt-2 text-[12.5px] text-muted">{note}</p>
+      <p className="mt-2 text-[13px] text-muted">{note}</p>
     </Card>
   );
 }

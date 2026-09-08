@@ -111,7 +111,7 @@ export function QueryPanel({
         {result.state === "idle" ? null : (
           <div className="border-t border-hairline">
             <div className="flex flex-wrap items-center justify-between gap-2 bg-raised/30 px-4 py-2">
-              <p className="font-mono text-[11.5px] tracking-[0.06em] text-faint uppercase">
+              <p className="font-mono text-[11px] tracking-[0.06em] text-faint uppercase">
                 Response
               </p>
               {result.state === "ok" ? (
@@ -126,19 +126,19 @@ export function QueryPanel({
             </div>
 
             {result.state === "running" ? (
-              <p className="px-4 py-4 text-[12.5px] text-muted">
+              <p className="px-4 py-4 text-[13px] text-muted">
                 Asking the index…
               </p>
             ) : null}
 
             {result.state === "failed" ? (
-              <p className="px-4 py-4 text-[12.5px] leading-relaxed text-invalid">
+              <p className="px-4 py-4 text-[13px] leading-relaxed text-invalid">
                 {result.message}
               </p>
             ) : null}
 
             {result.state === "ok" ? (
-              <pre className="max-h-[280px] overflow-auto px-4 py-4 font-mono text-[11.5px] leading-[1.7] text-muted">
+              <pre className="max-h-[280px] overflow-auto px-4 py-4 font-mono text-[11px] leading-[1.7] text-muted">
                 <code>{result.body}</code>
               </pre>
             ) : null}
@@ -146,7 +146,7 @@ export function QueryPanel({
         )}
       </div>
 
-      <p className="border-t border-hairline px-4 py-3 text-[12.5px] leading-relaxed text-faint">
+      <p className="border-t border-hairline px-4 py-3 text-[13px] leading-relaxed text-faint">
         {note}
       </p>
     </>
