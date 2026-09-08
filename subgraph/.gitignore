@@ -1,0 +1,9 @@
+node_modules/
+build/
+generated/
+.env
+.env.*
+!.env.example
+
+# matchstick writes this after each run
+tests/.latest.json

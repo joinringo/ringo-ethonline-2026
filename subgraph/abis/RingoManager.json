@@ -1,0 +1,95 @@
+[
+  {
+    "anonymous": false,
+    "type": "event",
+    "name": "QuestionCreated",
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "ringoId",
+        "type": "bytes"
+      },
+      {
+        "indexed": true,
+        "name": "questionId",
+        "type": "bytes32"
+      }
+    ]
+  },
+  {
+    "anonymous": false,
+    "type": "event",
+    "name": "RingoCreatedAndFilled",
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "ringoId",
+        "type": "bytes"
+      },
+      {
+        "indexed": true,
+        "name": "userA",
+        "type": "address"
+      },
+      {
+        "indexed": true,
+        "name": "userB",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "amountA",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "amountB",
+        "type": "uint256"
+      },
+      {
+        "indexed": false,
+        "name": "escrow",
+        "type": "address"
+      }
+    ]
+  },
+  {
+    "anonymous": false,
+    "type": "event",
+    "name": "RingoResolved",
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "ringoId",
+        "type": "bytes"
+      },
+      {
+        "indexed": true,
+        "name": "winner",
+        "type": "address"
+      },
+      {
+        "indexed": false,
+        "name": "amount",
+        "type": "uint256"
+      }
+    ]
+  },
+  {
+    "anonymous": false,
+    "type": "event",
+    "name": "RingoInvalidated",
+    "inputs": [
+      {
+        "indexed": true,
+        "name": "ringoId",
+        "type": "bytes"
+      },
+      {
+        "indexed": false,
+        "name": "timestamp",
+        "type": "uint256"
+      }
+    ]
+  }
+]

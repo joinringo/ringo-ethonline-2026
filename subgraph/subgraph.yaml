@@ -1,0 +1,106 @@
+specVersion: 1.2.0
+description: Ringo — prediction markets opened under tweets, settled in USDC on Polygon.
+repository: https://github.com/joinringo/ringo-ethonline-2026
+schema:
+  file: ./schema.graphql
+
+dataSources:
+  # -------------------------------------------------------------------------
+  # 1. RingoManager — markets, fills, resolutions
+  # -------------------------------------------------------------------------
+  - kind: ethereum/contract
+    name: RingoManager
+    network: matic
+    source:
+      # Confirmed Polygon mainnet (chain 137). The other address that appears in
+      # the field manual, 0xac2b7d6e98b3CC643ea0fE4E93e3864f9c426417, is the
+      # Sepolia deployment — do not index it here.
+      address: "0x6816374F4Bf692A8b317d9b03cF510DD81C40841"
+      abi: RingoManager
+      # Proxy creation block, read off Polygon mainnet by Manuel on Sep 6
+      # (2025-09-13T09:17:33Z). Exact, not estimated.
+      startBlock: 76393440
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      file: ./src/ringo-manager.ts
+      entities:
+        - Market
+        - Ringo
+        - Resolution
+        - Trader
+        - DailyStat
+      abis:
+        - name: RingoManager
+          file: ./abis/RingoManager.json
+      eventHandlers:
+        # Every signature below is settled against Polygon mainnet, not guessed.
+        # The implementation behind the proxy is unverified on every explorer
+        # and on Sourcify, so the chain itself is the source of truth.
+        #
+        # Types: each keccak256 matches the topic0 the contract emits, and all
+        # four constants appear verbatim in the implementation runtime bytecode
+        # at 0x3b9e0e3d0b8cdac44734e6397b0ca53ac716a15f.
+        #
+        # indexed: read off the LOG opcode the compiler emits after each of
+        # those constants — LOG4, LOG3, LOG3, LOG2, i.e. 3, 2, 2 and 1 indexed
+        # parameters. For the first three that agrees with the live logs down
+        # to the byte: 4 topics + 96 B of data, 3 + 0 B, 3 + 32 B. Invalidations
+        # never fired inside the ~220k-block window public RPCs still serve, so
+        # bytecode is the only witness for the fourth — but the same reading
+        # reproduces the other three exactly.
+        #
+        # Three of the four differ from the earlier guess: questionId, userA,
+        # userB and the address on RingoResolved are all indexed. Shipping the
+        # guess would have decoded amounts off by one word.
+        - event: QuestionCreated(indexed bytes,indexed bytes32)
+          handler: handleQuestionCreated
+        - event: RingoCreatedAndFilled(indexed bytes,indexed address,indexed address,uint256,uint256,address)
+          handler: handleRingoCreatedAndFilled
+        - event: RingoResolved(indexed bytes,indexed address,uint256)
+          handler: handleRingoResolved
+        - event: RingoInvalidated(indexed bytes,uint256)
+          handler: handleRingoInvalidated
+
+  # -------------------------------------------------------------------------
+  # 2. USDC — fee transfers only
+  # -------------------------------------------------------------------------
+  # Without a topic filter this data source would index every USDC Transfer on
+  # Polygon (millions per week) and discard 99.99% of them in the handler. The
+  # sync would take days and would not finish before the deadline.
+  #
+  # topic2 filters on the second indexed arg of Transfer(from, to, value),
+  # i.e. `to`, at the node level — the handler is only ever called for
+  # transfers into the two fee addresses.
+  #
+  # Values are 32-byte left-padded addresses.
+  # -------------------------------------------------------------------------
+  - kind: ethereum/contract
+    name: USDC
+    network: matic
+    source:
+      address: "0x3c499c542cEF5E3811e1192ce70d8cC03d5c3359"
+      abi: ERC20
+      # Same start block as RingoManager above. Never USDC's own deployment
+      # block — USDC predates Ringo by years.
+      startBlock: 76393440
+    mapping:
+      kind: ethereum/events
+      apiVersion: 0.0.9
+      language: wasm/assemblyscript
+      file: ./src/usdc.ts
+      entities:
+        - FeeEvent
+        - DailyStat
+      abis:
+        - name: ERC20
+          file: ./abis/ERC20.json
+      eventHandlers:
+        - event: Transfer(indexed address,indexed address,uint256)
+          handler: handleFeeTransfer
+          topic2:
+            # FeesManager 0xF1Ccb04C363F1df8D6081D2e32c70f7a85814E92
+            - "0x000000000000000000000000f1ccb04c363f1df8d6081d2e32c70f7a85814e92"
+            # Fee recipient 0x3eFBc153573C469d14846f2Af6Eb1245768C83cE
+            - "0x0000000000000000000000003efbc153573c469d14846f2af6eb1245768c83ce"
