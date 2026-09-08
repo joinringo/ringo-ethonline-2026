@@ -432,9 +432,8 @@ summary,
 }
 
 /* ── Header ──────────────────────────────────────────────────────────────
-   The nav's own outline doubles as the scroll read-out. The gradient is
-   painted into the 1px padding box and the content box is masked back out, so
-   what is left is exactly the border ring — a real rounded outline that fills,
+   The gradient is painted into the 1px padding box and the content box masked
+   back out, leaving exactly the border ring — a rounded outline that fills,
    which `border-image` cannot do on a pill.
    ───────────────────────────────────────────────────────────────────────── */
 
@@ -454,15 +453,12 @@ summary,
   mask-composite: exclude;
 }
 
-/* Anchor jumps land under the sticky band otherwise. */
+/* Anchor jumps land under the sticky band otherwise. The fallback path: with
+   JavaScript on, Lenis applies the same offset itself. No `scroll-behavior:
+   smooth` here — Lenis drives the scroll position, and a browser smooth scroll
+   on top would be two animations fighting over one number. */
 html {
   scroll-padding-top: 6.5rem;
-}
-
-@media (prefers-reduced-motion: no-preference) {
-  html {
-    scroll-behavior: smooth;
-  }
 }
 
 /* ── Utilities ───────────────────────────────────────────────────────────── */
@@ -523,21 +519,6 @@ html {
 @keyframes shimmer {
   100% {
     transform: translateX(100%);
-  }
-}
-
-.rise {
-  animation: rise 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
-}
-
-@keyframes rise {
-  from {
-    opacity: 0;
-    transform: translateY(6px);
-  }
-  to {
-    opacity: 1;
-    transform: none;
   }
 }
 

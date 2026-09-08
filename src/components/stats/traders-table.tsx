@@ -1,4 +1,5 @@
 import { POLYGONSCAN, RANK, ROW, TD, TH } from "@/components/stats/table";
+import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Card, SectionHead } from "@/components/ui/card";
 import { ExternalIcon } from "@/components/ui/icons";
 import {
@@ -47,73 +48,81 @@ export function TradersTable({
   );
 
   return (
-    <Card className="overflow-hidden">
-      <SectionHead
-        title="Most active traders"
-        note="Ranked by lifetime volume staked across both sides of every fill."
-      />
+    <Reveal>
+      <Card className="overflow-hidden">
+        <SectionHead
+          title="Most active traders"
+          note="Ranked by lifetime volume staked across both sides of every fill."
+        />
 
-      <ColumnGlossary items={COLUMNS} />
+        <ColumnGlossary items={COLUMNS} />
 
-      <div className="overflow-x-auto">
-        <table className="w-full min-w-[560px] border-collapse text-[14px]">
-          <thead>
-            <tr className="border-b border-hairline bg-raised/30 text-left">
-              <th className={`${TH} w-10`}>#</th>
-              <th className={TH}>Address</th>
-              <th className={`${TH} text-right`}>Staked</th>
-              {settledAny ? (
-                <th className={`${TH} text-right`}>Record</th>
-              ) : null}
-              <th className={`${TH} text-right`}>Last seen</th>
-            </tr>
-          </thead>
-          <tbody>
-            {traders.map((trader, index) => (
-              <tr key={trader.id} className={`group ${ROW}`}>
-                <td className={RANK}>{index + 1}</td>
-                <td className={TD}>
-                  <a
-                    href={`${POLYGONSCAN}${trader.id}`}
-                    target="_blank"
-                    rel="noreferrer noopener"
-                    className="inline-flex items-center gap-1.5 text-[13px] transition-colors hover:text-holo"
-                  >
-                    {shortAddress(trader.id)}
-                    <ExternalIcon />
-                  </a>
-                </td>
-                <td className={`${TD} text-right`}>
-                  <span className="tnum font-medium">
-                    ${formatUsdc(trader.volume)}
-                  </span>
-                  <ShareBar value={BigInt(trader.volume)} of={top} />
-                </td>
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[560px] border-collapse text-[14px]">
+            <thead>
+              <tr className="border-b border-hairline bg-raised/30 text-left">
+                <th className={`${TH} w-10`}>#</th>
+                <th className={TH}>Address</th>
+                <th className={`${TH} text-right`}>Staked</th>
                 {settledAny ? (
-                  <td className={`${TD} tnum text-right whitespace-nowrap`}>
-                    <span className="text-resolved">{trader.wins}</span>
-                    <span className="text-faint"> / </span>
-                    <span className="text-invalid">{trader.losses}</span>
-                  </td>
+                  <th className={`${TH} text-right`}>Record</th>
                 ) : null}
-                <td className={`${TD} text-right whitespace-nowrap text-muted`}>
-                  {formatRelativeDay(trader.lastActive)}
-                </td>
+                <th className={`${TH} text-right`}>Last seen</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
+            </thead>
+            <RevealGroup as="tbody" stagger={0.028} amount={0.02}>
+              {traders.map((trader, index) => (
+                <RevealItem
+                  as="tr"
+                  key={trader.id}
+                  className={`group ${ROW}`}
+                  distance={8}
+                  blur={false}
+                >
+                  <td className={RANK}>{index + 1}</td>
+                  <td className={TD}>
+                    <a
+                      href={`${POLYGONSCAN}${trader.id}`}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="inline-flex items-center gap-1.5 text-[13px] transition-colors hover:text-holo"
+                    >
+                      {shortAddress(trader.id)}
+                      <ExternalIcon />
+                    </a>
+                  </td>
+                  <td className={`${TD} text-right`}>
+                    <span className="tnum font-medium">
+                      ${formatUsdc(trader.volume)}
+                    </span>
+                    <ShareBar value={BigInt(trader.volume)} of={top} />
+                  </td>
+                  {settledAny ? (
+                    <td className={`${TD} tnum text-right whitespace-nowrap`}>
+                      <span className="text-resolved">{trader.wins}</span>
+                      <span className="text-faint"> / </span>
+                      <span className="text-invalid">{trader.losses}</span>
+                    </td>
+                  ) : null}
+                  <td className={`${TD} text-right whitespace-nowrap text-muted`}>
+                    {formatRelativeDay(trader.lastActive)}
+                  </td>
+                </RevealItem>
+              ))}
+            </RevealGroup>
+          </table>
+        </div>
 
-      {settledAny ? null : (
-        <p className="border-t border-hairline px-5 py-4 text-[13px] leading-relaxed text-faint">
-          Win and loss counts appear once the index reaches a settled market.
-          The resolution event names the winner, so the record is real — it is
-          simply empty until the sync gets there.
-        </p>
-      )}
+        {settledAny ? null : (
+          <p className="border-t border-hairline px-5 py-4 text-[13px] leading-relaxed text-faint">
+            Win and loss counts appear once the index reaches a settled market.
+            The resolution event names the winner, so the record is real — it is
+            simply empty until the sync gets there.
+          </p>
+        )}
 
-      <ShowMore href={moreHref} shown={traders.length} noun="traders" />
-    </Card>
+        <ShowMore href={moreHref} shown={traders.length} noun="traders" />
+      </Card>
+    </Reveal>
   );
 }

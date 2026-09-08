@@ -1,5 +1,6 @@
 "use client";
 
+import { useLenis } from "lenis/react";
 import Link from "next/link";
 import {
   AnimatePresence,
@@ -27,16 +28,12 @@ const SECTIONS = [
   { id: "traders", label: "Traders" },
 ] as const;
 
-/**
- * `top` is the bare bar over the hero, `pinned` the floating pill, `hidden` the
- * pill parked off-screen while the reader is moving down a long table.
- */
+/** Bare bar over the hero, floating pill, and the pill parked off-screen. */
 type Phase = "top" | "pinned" | "hidden";
 
 const TOP_UNTIL = 18;
 const HIDE_AFTER = 300;
-/* Trackpads emit sub-pixel jitter in both directions; without a dead zone the
-   pill flickers between hidden and pinned while the page is standing still. */
+/** Without it, trackpad jitter flickers the pill while the page stands still. */
 const DEAD_ZONE = 5;
 
 const SPRING: Transition = {
@@ -86,8 +83,7 @@ export function SiteHeader() {
   const [phase, setPhase] = useState<Phase>("top");
   const [active, setActive] = useState<string>(SECTIONS[0].id);
   const [menuOpen, setMenuOpen] = useState(false);
-  /* Bumped on every top -> pinned crossing so the sheen remounts and its
-     one-shot sweep actually replays. */
+  /** Bumped on every top -> pinned crossing so the sheen replays. */
   const [sweep, setSweep] = useState(0);
 
   const reduced = useReducedMotion();
@@ -95,9 +91,6 @@ export function SiteHeader() {
 
   const { scrollY, scrollYProgress } = useScroll();
 
-  /* The ring reads a spring rather than the raw progress: the browser reports
-     scroll in coarse steps on a trackpad fling, and the smoothing is what makes
-     the outline look like it is being poured rather than stepped. */
   const progress = useSpring(scrollYProgress, {
     stiffness: 240,
     damping: 40,
@@ -107,12 +100,9 @@ export function SiteHeader() {
     progress,
     (v) => `${Math.min(1, Math.max(0, v)) * 100}%`,
   );
-  /* White, not the holo accent: the mint read as a coloured stripe glued to the
-     rim. Plain light travelling along the outline says the same thing and
-     leaves the CTA's foil as the only colour on the pill. */
+  /* White, not the holo accent: the mint read as a stripe glued to the rim. */
   const ring = useMotionTemplate`linear-gradient(90deg, rgb(255 255 255 / 0.5) 0%, rgb(255 255 255 / 0.5) calc(${filled} - 18px), rgb(255 255 255 / 0) ${filled})`;
 
-  /* Cursor position on the pill, in element space, for the highlight. */
   const mx = useMotionValue(-200);
   const my = useMotionValue(-200);
   const spotlight = useMotionTemplate`radial-gradient(150px circle at ${mx}px ${my}px, rgb(255 255 255 / 0.07), transparent 68%)`;
@@ -121,10 +111,8 @@ export function SiteHeader() {
     menuRef.current = menuOpen;
   }, [menuOpen]);
 
-  /* A reload restores the scroll position without emitting a scroll event, so
-     without this the pill starts as the bare bar halfway down the page. Read on
-     the next frame: the server rendered `top`, and correcting it during the
-     hydration pass is what would make the two disagree. */
+  /* A reload restores the scroll position without emitting a scroll event. Read
+     on the next frame, so hydration still matches the server's `top`. */
   useEffect(() => {
     const frame = requestAnimationFrame(() => {
       if (window.scrollY > TOP_UNTIL) {
@@ -151,8 +139,8 @@ export function SiteHeader() {
       if (prev === "top") setSweep((n) => n + 1);
     }
 
-    /* The section that owns the upper third of the viewport is the one being
-       read, not the one that merely touches the top edge. */
+    /* The section owning the upper third is the one being read, not the one
+       that merely touches the top edge. */
     const line = y + window.innerHeight * 0.32;
     let current: string = SECTIONS[0].id;
     for (const section of SECTIONS) {
@@ -176,9 +164,8 @@ export function SiteHeader() {
 
   return (
     <>
-      {/* The band keeps its height in flow, so nothing below it moves when the
-          bar collapses into the pill. It is transparent and click-through;
-          only the nav itself takes the pointer. */}
+      {/* The band holds its height in flow, so nothing below moves when the bar
+          collapses. Click-through; only the nav itself takes the pointer. */}
       <header className="pointer-events-none sticky top-0 z-50 flex h-20 w-full items-center px-5 sm:px-6">
         <motion.nav
           ref={navRef}
@@ -203,7 +190,6 @@ export function SiteHeader() {
             transition={{ duration: reduced ? 0 : 0.4 }}
           />
 
-          {/* Foil that follows the cursor across the pill. */}
           <motion.span
             aria-hidden
             className="pointer-events-none absolute inset-0 rounded-full opacity-0 transition-opacity duration-300 group-hover:opacity-100"
@@ -227,32 +213,31 @@ export function SiteHeader() {
             )}
           </AnimatePresence>
 
+          {/* The lockup is ringo-marketing's, to the class: the mark at 1.5em
+              of the wordmark with its `-top-1` optical nudge, gap-2, and RINGO
+              set in Monument. Sized at 16px rather than their 18px because this
+              one lives in a sticky bar and theirs is a hero lockup. */}
           <Link
             href="/"
-            className="relative z-10 flex shrink-0 items-center gap-2.5 transition-opacity duration-200 hover:opacity-75"
+            className="relative z-10 flex shrink-0 items-center gap-2 text-[16px] transition-opacity duration-200 hover:opacity-75"
           >
-            {/* No rotation: the mark has an orientation of its own and reads as
-                broken the moment it is turned. Only the size follows the pill. */}
+            {/* Never rotate the mark: it has an orientation of its own. */}
             <motion.span
               className="text-mark"
               animate={{ scale: atTop ? 1 : 0.92 }}
               transition={spring}
             >
-              <RingoMark className="h-5 w-5" />
+              <RingoMark className="relative -top-1 size-[1.5em] shrink-0" />
             </motion.span>
-            {/* No descriptor after the wordmark. "Market index" used to sit
-                here and it was doing three things badly: repeating a word the
-                hero already uses in its other sense, restating what the h1
-                says in a full sentence, and putting the internal noun for an
-                order-book position where the public product category goes. */}
-            <span className="text-[15px] font-semibold tracking-[-0.01em]">
+            {/* The negative margin takes back the trailing space tracking adds
+                after the last letter, which otherwise pushes the lockup
+                off-centre against everything to its right. */}
+            <span className="font-display -mr-[0.16em] tracking-[0.16em]">
               Ringo
             </span>
           </Link>
 
-          {/* Centred absolutely so the pill can resize under it without the
-              links jumping, and so it cross-fades with the metadata that
-              occupies the same band at rest. */}
+          {/* Absolute, so the pill resizes under it without the links moving. */}
           <SectionLinks
             active={active}
             show={!atTop}
@@ -261,11 +246,8 @@ export function SiteHeader() {
           />
 
           <div className="relative z-10 flex items-center gap-2">
-            {/*
-              Plain metadata, not badges. It belongs to the page at rest; once
-              the reader is inside the tables that same space is worth more as
-              navigation, so it hands over to the links above.
-            */}
+            {/* Metadata belongs to the page at rest; once the reader is in the
+                tables that space is worth more as navigation. */}
             <div className="hidden lg:block">
               <Collapse show={atTop} reduced={reduced}>
                 <dl className="flex items-center gap-5 pr-2">
@@ -302,8 +284,7 @@ export function SiteHeader() {
                   : "border-transparent text-holo-ink"
               }`}
             >
-              {/* The fill cross-fades under the label: background-image cannot
-                  interpolate, so the foil gets its own layer. */}
+              {/* Own layer: background-image cannot interpolate. */}
               <motion.span
                 aria-hidden
                 className="holo-fill absolute inset-0"
@@ -340,11 +321,8 @@ export function SiteHeader() {
   );
 }
 
-/**
- * Width collapse without a magic max-width. `width: auto` is measured by motion
- * and animated in pixels; the child stays `w-max` and nowrap so the text keeps
- * its intrinsic size while the box closes over it instead of reflowing.
- */
+/** Width collapse without a magic max-width. The child stays `w-max` so the
+ *  text keeps its size while the box closes over it instead of reflowing. */
 function Collapse({
   show,
   reduced,
@@ -401,9 +379,8 @@ function SectionLinks({
           <ul className="relative flex items-center gap-1">
             {SECTIONS.map((section) => (
               <li key={section.id} className="relative">
-                {/* One marker for the whole row: `layoutId` makes motion move
-                    the same box between links, so the travel is continuous
-                    instead of a fade in one place and out of another. */}
+                {/* `layoutId` moves one box between links, so the travel is
+                    continuous rather than a fade out and a fade in. */}
                 {active === section.id && (
                   <motion.span
                     layoutId="nav-marker"
@@ -459,6 +436,7 @@ function MobileMenu({
   onClose: () => void;
 }) {
   const panelRef = useRef<HTMLDivElement>(null);
+  const lenis = useLenis();
 
   useEffect(() => {
     if (!open) return;
@@ -466,16 +444,21 @@ function MobileMenu({
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
+    /* Both locks are needed. `overflow: hidden` alone does not stop Lenis,
+       which drives the scroll position itself; `lenis.stop()` alone leaves the
+       page scrollable for anyone whose smoothing is off. */
     const restore = document.body.style.overflow;
     document.body.style.overflow = "hidden";
+    lenis?.stop();
     document.addEventListener("keydown", onKey);
     panelRef.current?.querySelector<HTMLElement>("a")?.focus();
 
     return () => {
       document.body.style.overflow = restore;
+      lenis?.start();
       document.removeEventListener("keydown", onKey);
     };
-  }, [open, onClose]);
+  }, [open, onClose, lenis]);
 
   return (
     <AnimatePresence>
@@ -545,7 +528,7 @@ function MobileMenu({
 function Meta({ label, value }: { label: string; value: string }) {
   return (
     <div className="flex items-baseline gap-1.5 whitespace-nowrap">
-      <dt className="text-[11px] tracking-[0.08em] text-faint uppercase">
+      <dt className="font-label text-[11px] tracking-[0.06em] text-faint uppercase">
         {label}
       </dt>
       <dd className="text-[13px] text-ink">{value}</dd>

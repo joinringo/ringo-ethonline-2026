@@ -1,3 +1,4 @@
+import { RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Card } from "@/components/ui/card";
 import { QueryPanel } from "@/components/ui/query-panel";
 import { formatRelativeDay } from "@/lib/format";
@@ -16,47 +17,67 @@ export function LifetimeHero({
   query: string;
 }) {
   return (
-    <section className="rise grid gap-8 pb-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14">
+    /* `immediate`: this block is above the fold on every viewport. The spacing
+       moved onto the wrappers — a margin on an animated child collapses through
+       the transformed box it now sits in. */
+    <RevealGroup
+      as="section"
+      immediate
+      stagger={0.08}
+      delay={0.06}
+      className="grid gap-8 pb-10 lg:grid-cols-[1.05fr_0.95fr] lg:gap-14"
+    >
       <div>
-        <p className="flex items-center gap-2 text-[12px] font-medium tracking-[0.14em] text-faint uppercase">
-          <span
-            aria-hidden
-            className="live-dot h-1.5 w-1.5 rounded-full bg-resolved"
-          />
-          Live from the index
-        </p>
+        <RevealItem>
+          <p className="font-label flex items-center gap-2 text-[12px] tracking-[0.1em] text-faint uppercase">
+            <span
+              aria-hidden
+              className="live-dot h-1.5 w-1.5 rounded-full bg-resolved"
+            />
+            Live from the index
+          </p>
+        </RevealItem>
 
-        <h1 className="mt-5 max-w-[20ch] text-[30px] leading-[1.1] font-semibold tracking-[-0.02em] text-balance sm:text-[34px] md:text-[46px]">
-          Every market Ringo has settled, read back out of the chain.
-        </h1>
+        <RevealItem className="mt-5">
+          <h1 className="max-w-[20ch] text-[30px] leading-[1.1] font-semibold tracking-[-0.02em] text-balance sm:text-[34px] md:text-[46px]">
+            Every market Ringo has settled, read back out of the chain.
+          </h1>
+        </RevealItem>
 
-        <p className="mt-5 max-w-[54ch] text-[15px] leading-relaxed text-muted">
-          Markets open when someone replies to a tweet. Two people take opposite
-          sides, USDC settles on Polygon, and a subgraph on The Graph Network
-          indexes the result.
-        </p>
+        <RevealItem className="mt-5">
+          <p className="max-w-[54ch] text-[15px] leading-relaxed text-muted">
+            Markets open when someone replies to a tweet. Two people take
+            opposite sides, USDC settles on Polygon, and a subgraph on The Graph
+            Network indexes the result.
+          </p>
+        </RevealItem>
 
-        <div className="mt-7 flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-faint">
-          <SideKey color="bg-side-a" label="Side A" />
-          <SideKey color="bg-side-b" label="Side B" />
-          <span aria-hidden className="hidden h-3 w-px bg-hairline sm:block" />
-          <span>
-            {totals.lastActiveDay
-              ? `Last indexed activity ${formatRelativeDay(totals.lastActiveDay)}`
-              : "No indexed activity yet"}
-          </span>
-        </div>
+        <RevealItem className="mt-7">
+          <div className="flex flex-wrap items-center gap-x-5 gap-y-2 text-[13px] text-faint">
+            <SideKey color="bg-side-a" label="Side A" />
+            <SideKey color="bg-side-b" label="Side B" />
+            <span aria-hidden className="hidden h-3 w-px bg-hairline sm:block" />
+            <span>
+              {totals.lastActiveDay
+                ? `Last indexed activity ${formatRelativeDay(totals.lastActiveDay)}`
+                : "No indexed activity yet"}
+            </span>
+          </div>
+        </RevealItem>
       </div>
 
-      <Card className="overflow-hidden">
-        <QueryPanel
-          queryId="lifetime"
-          query={query}
-          filename="lifetime.graphql"
-          note="Every figure below and the chart under them come from this one request. Volume and fees are folded from the daily rows; active traders is a daily distinct count, so it is deliberately not summed."
-        />
-      </Card>
-    </section>
+      {/* Last and from further down: the claim lands before its proof. */}
+      <RevealItem distance={22}>
+        <Card className="overflow-hidden">
+          <QueryPanel
+            queryId="lifetime"
+            query={query}
+            filename="lifetime.graphql"
+            note="Every figure below and the chart under them come from this one request. Volume and fees are folded from the daily rows; active traders is a daily distinct count, so it is deliberately not summed."
+          />
+        </Card>
+      </RevealItem>
+    </RevealGroup>
   );
 }
 

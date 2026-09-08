@@ -1,3 +1,5 @@
+import { GrowBar } from "@/components/motion/grow";
+import { Reveal, RevealGroup } from "@/components/motion/reveal";
 import { Card, SectionHead } from "@/components/ui/card";
 import { formatCount, formatDayLabel, formatUsdc } from "@/lib/format";
 import type { DailyPoint } from "@/lib/subgraph/stats";
@@ -18,48 +20,53 @@ export function ActivityChart({ series }: { series: DailyPoint[] }) {
   const active = series.filter((point) => point.fills > 0).length;
 
   return (
-    <Card>
-      <SectionHead
-        title="Daily settled volume"
-        note={`Last ${series.length} days ending on the most recent indexed day. ${active} of them had a fill.`}
-        aside={
-          <p className="tnum text-right text-[13px] text-muted">
-            Peak{" "}
-            <span className="font-medium text-ink">
-              ${formatUsdc(peak, { decimals: 0 })}
-            </span>
-          </p>
-        }
-      />
+    <Reveal>
+      <Card>
+        <SectionHead
+          title="Daily settled volume"
+          note={`Last ${series.length} days ending on the most recent indexed day. ${active} of them had a fill.`}
+          aside={
+            <p className="tnum text-right text-[13px] text-muted">
+              Peak{" "}
+              <span className="font-medium text-ink">
+                ${formatUsdc(peak, { decimals: 0 })}
+              </span>
+            </p>
+          }
+        />
 
-      <div className="px-5 py-5">
-        <div
-          role="img"
-          aria-label={`Daily settled volume over the last ${series.length} indexed days, peaking at ${formatUsdc(peak, { decimals: 0 })} USDC.`}
-          className="flex h-[104px] items-end gap-[2px] sm:h-[128px] sm:gap-[3px]"
-        >
-          {series.map((point, index) => (
-            <Bar
-              key={point.date}
-              point={point}
-              peak={peak}
-              align={
-                index < 4
-                  ? "left"
-                  : index > series.length - 5
-                    ? "right"
-                    : "center"
-              }
-            />
-          ))}
-        </div>
+        <div className="px-5 py-5">
+          {/* Dealt left to right — the series is a sequence in time. */}
+          <RevealGroup stagger={0.012} amount={0.3}>
+            <div
+              role="img"
+              aria-label={`Daily settled volume over the last ${series.length} indexed days, peaking at ${formatUsdc(peak, { decimals: 0 })} USDC.`}
+              className="flex h-[104px] items-end gap-[2px] sm:h-[128px] sm:gap-[3px]"
+            >
+              {series.map((point, index) => (
+                <Bar
+                  key={point.date}
+                  point={point}
+                  peak={peak}
+                  align={
+                    index < 4
+                      ? "left"
+                      : index > series.length - 5
+                        ? "right"
+                        : "center"
+                  }
+                />
+              ))}
+            </div>
+          </RevealGroup>
 
-        <div className="mt-3 flex justify-between text-[11px] text-faint">
-          <span>{formatDayLabel(first.date)}</span>
-          <span>{formatDayLabel(last.date)}</span>
+          <div className="mt-3 flex justify-between text-[11px] text-faint">
+            <span>{formatDayLabel(first.date)}</span>
+            <span>{formatDayLabel(last.date)}</span>
+          </div>
         </div>
-      </div>
-    </Card>
+      </Card>
+    </Reveal>
   );
 }
 
@@ -86,7 +93,7 @@ function Bar({
 
   return (
     <div className="group relative flex h-full flex-1 items-end">
-      <div
+      <GrowBar
         style={{ height }}
         className={`w-full rounded-[2px] transition-colors duration-150 ${
           point.volume > 0n

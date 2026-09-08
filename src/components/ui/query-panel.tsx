@@ -71,12 +71,14 @@ export function QueryPanel({
     <>
       <div className="flex items-center justify-between gap-3 border-b border-hairline bg-raised/40 px-4 py-2.5">
         <div className="flex min-w-0 items-center gap-2">
-          {/* Window chrome, not data. It used to borrow the side and status
-              colours, which spends a key the tables rely on for decoration. */}
+          {/* Window chrome, not data — but grey chrome read as a broken panel
+              rather than a restrained one. Red is --color-danger, not side B:
+              the point of that note is that the rose means a side, and window
+              furniture is exactly the decoration it must not be spent on. */}
           <span aria-hidden className="flex shrink-0 gap-1.5">
-            <Dot className="bg-faint/35" />
-            <Dot className="bg-faint/25" />
-            <Dot className="bg-faint/20" />
+            <Dot className="bg-danger/70" />
+            <Dot className="bg-mark/70" />
+            <Dot className="bg-resolved/70" />
           </span>
           <p className="ml-1 truncate text-[12px] text-muted">
             {filename}
@@ -113,7 +115,7 @@ export function QueryPanel({
         {result.state === "idle" ? null : (
           <div className="border-t border-hairline">
             <div className="flex flex-wrap items-center justify-between gap-2 bg-raised/30 px-4 py-2">
-              <p className="text-[11px] tracking-[0.06em] text-faint uppercase">
+              <p className="font-label text-[11px] tracking-[0.06em] text-faint uppercase">
                 Response
               </p>
               {result.state === "ok" ? (
@@ -140,7 +142,11 @@ export function QueryPanel({
             ) : null}
 
             {result.state === "ok" ? (
-              <pre className="max-h-[280px] overflow-auto px-4 py-4 font-mono text-[11px] leading-[1.7] text-muted">
+              /* Without this Lenis scrolls the page instead of the code. */
+              <pre
+                data-lenis-prevent
+                className="max-h-[280px] overflow-auto px-4 py-4 font-mono text-[11px] leading-[1.7] text-muted"
+              >
                 <code>{result.body}</code>
               </pre>
             ) : null}

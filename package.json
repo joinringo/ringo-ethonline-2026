@@ -17,6 +17,7 @@
     "subgraph:start-block": "npm --prefix subgraph run start-block"
   },
   "dependencies": {
+    "lenis": "^1.3.26",
     "motion": "^13.2.0",
     "next": "^16.3.4",
     "react": "^19.2.8",
