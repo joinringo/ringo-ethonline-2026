@@ -1,4 +1,4 @@
-import { POLYGONSCAN, RANK, ROW, TD, TH } from "@/components/stats/table";
+import { RANK, ROW, TD, TH } from "@/components/stats/table";
 import { GrowRail } from "@/components/motion/grow";
 import { Reveal, RevealGroup, RevealItem } from "@/components/motion/reveal";
 import { Card, SectionHead } from "@/components/ui/card";
@@ -26,7 +26,11 @@ const COLUMNS: ColumnNote[] = [
   },
   {
     term: "Status",
-    note: "Settled means the contract paid out, and the label beside it says how the claim ended. The contract fixes side A as the YES side, so the winning address is the verdict: held means the claim turned out true, broken means it did not. Voided means the market was invalidated and nobody won. Open means no resolution has been indexed yet. A few settled rows show an address instead: those predate the fill event this index decodes, so there is no pair to place the winner against.",
+    note: "Where the market got to. Settled means the contract paid out. Voided means it was invalidated and nobody won. Open means no resolution has been indexed yet.",
+  },
+  {
+    term: "Answer",
+    note: "What the claim turned out to be. The contract fixes side A as the yes side, so the winning address is the answer — shown in the two colours the key at the top of the page teaches. Invalid is a market that was thrown out, where there is no answer to give. A dash is a settled market whose fill predates this index: there is no pair to place the winner against, so the answer is genuinely unavailable rather than unknown.",
   },
   {
     term: "Volume",
@@ -81,13 +85,14 @@ export function MarketsTable({
                the left matches the card head above it; the right gets 24 because
                a right-aligned column runs into the edge, where a left-aligned
                one runs away from it. */
-            className="w-full min-w-[640px] border-collapse text-body [&_:is(th,td):first-child]:pl-5 [&_:is(th,td):last-child]:pr-6"
+            className="w-full min-w-[700px] border-collapse text-body [&_:is(th,td):first-child]:pl-5 [&_:is(th,td):last-child]:pr-6"
           >
             <thead>
               <tr className="border-b border-hairline bg-raised/30 text-left">
                 <th className={`${TH} w-10`}>#</th>
                 <th className={TH}>Market</th>
                 <th className={TH}>Status</th>
+                <th className={TH}>Answer</th>
                 <th className={`${TH} text-right`}>Volume</th>
                 <th className={`${TH} text-center`}>Staked</th>
                 <th className={`${TH} text-right`}>Opened</th>
@@ -116,7 +121,10 @@ export function MarketsTable({
                     )}
                   </td>
                   <td className={TD}>
-                    <StatusMark
+                    <StatusMark status={market.status} />
+                  </td>
+                  <td className={TD}>
+                    <ClaimAnswer
                       status={market.status}
                       winner={market.resolution?.resolver ?? null}
                       fill={market.ringos[0] ?? null}
@@ -305,29 +313,26 @@ function Rail({ shareA, quiet }: { shareA?: number; quiet?: boolean }) {
 }
 
 /**
- * The resolution event carries an amount and an address. The amount is not
- * shown: markets are keyed per ringo, so it always equals the volume in the
- * next column. The address is the winner, and it is the only thing settlement
- * adds that the row does not already say.
- *
- * It used to be printed as a truncated hash, which is honest and nearly
- * useless: nobody learns anything from 0xfa32…b317. Matching it against the two
- * sides of the fill turns it into which side won — the same fact in the
- * vocabulary the hero key and the Staked column already taught. Checked across
- * every settled market in the index: the winner is one of the two traders 8,289
- * times, and neither of them zero times.
- *
- * The other 1,114 are v1-era markets with no fill to match against, so the
- * address is all there is. It is shown and linked rather than dropped.
- *
- * The winner sits on the badge's line rather than under it, and that is a
- * layout constraint before it is a taste: it was the only cell in the table
- * that could be two lines tall, so a settled row stood 21px taller than a
- * voided one and every column beside it hung from the top of the extra space.
- * The table had no steady row rhythm. One line per row everywhere is what
- * gives it one.
+ * Where the market got to: paid out, thrown out, or still open. What the claim
+ * turned out to be is the next column.
  */
-function StatusMark({
+function StatusMark({ status }: { status: Market["status"] }) {
+  if (status === "INVALID") return <Pill tone="invalid">Voided</Pill>;
+  if (status !== "RESOLVED") return <Pill tone="open">Open</Pill>;
+  return <Pill tone="resolved">Settled</Pill>;
+}
+
+/**
+ * The answer to the claim, in the side colours.
+ *
+ * Two earlier attempts wrote this as a predicate beside the status badge —
+ * "claim held", then "came true" — and both failed for the same reason, which
+ * was never the wording: a bare predicate has no subject, and the claim it
+ * describes sits two columns away. A column with a header supplies the subject
+ * once, and then a single word is enough. Every claim is a yes-or-no question,
+ * so yes and no are the words, in the two colours the hero key already teaches.
+ */
+function ClaimAnswer({
   status,
   winner,
   fill,
@@ -336,33 +341,25 @@ function StatusMark({
   winner: string | null;
   fill: { userA: { id: string }; userB: { id: string } } | null;
 }) {
-  if (status === "INVALID") return <Pill tone="invalid">Voided</Pill>;
-  if (status !== "RESOLVED") return <Pill tone="open">Open</Pill>;
+  if (status === "INVALID") {
+    return <span className="text-meta text-muted">Invalid</span>;
+  }
+  if (status !== "RESOLVED") {
+    return <span className="text-meta text-faint">—</span>;
+  }
 
   const side = winningSide(winner, fill);
+  // Settled, but the fill predates this index, so there is no pair to place
+  // the winner against. An em dash says that better than a guess would.
+  if (side === null) return <span className="text-meta text-faint">—</span>;
 
   return (
-    <span className="whitespace-nowrap">
-      <Pill tone="resolved">Settled</Pill>
-
-      {side !== null ? (
-        <span
-          className={`ml-2 text-meta ${
-            side === "A" ? "text-side-a" : "text-side-b"
-          }`}
-        >
-          {side === "A" ? "Claim held" : "Claim broken"}
-        </span>
-      ) : winner === null ? null : (
-        <a
-          href={`${POLYGONSCAN}${winner}`}
-          target="_blank"
-          rel="noreferrer noopener"
-          className="ml-2 font-mono text-meta text-faint transition-colors hover:text-muted"
-        >
-          won by {shortAddress(winner)}
-        </a>
-      )}
+    <span
+      className={`text-meta font-medium ${
+        side === "A" ? "text-side-a" : "text-side-b"
+      }`}
+    >
+      {side === "A" ? "Yes" : "No"}
     </span>
   );
 }

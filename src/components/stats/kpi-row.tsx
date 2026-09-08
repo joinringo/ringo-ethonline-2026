@@ -77,14 +77,14 @@ export function KpiRow({
           hint="Days the index wrote a row for, meaning anything happened — a fill or a fee arriving. Fewer of them carry volume, because fees are indexed from the start block while fills only exist from the block the current creation event starts firing at. Not calendar days since launch."
         />
         <Figure
-          label="Claims held"
+          label="Claims that came true"
           value={heldShare ?? "—"}
           note={
             settled > 0
               ? `${formatCount(verdicts.held)} of ${formatCount(settled)} with a verdict`
               : "no verdict indexed yet"
           }
-          hint={`Of the resolved markets, how many claims turned out true. The contract fixes side A as the YES side, so the winning address is the verdict. ${formatCount(verdicts.unknown)} more resolutions are excluded: their fill predates this index, so there is no pair to place the winner against, and counting them as either side would invent an answer the chain never gave.`}
+          hint={`Of the settled markets, how many of the things predicted actually happened. The contract fixes side A as the YES side, so the winning address is the verdict. ${formatCount(verdicts.unknown)} more resolutions are excluded: their fill predates this index, so there is no pair to place the winner against, and counting them as either side would invent an answer the chain never gave.`}
         />
       </dl>
     </RevealGroup>
