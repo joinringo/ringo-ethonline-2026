@@ -97,6 +97,7 @@ everything built for the hackathon plus the contracts between the two.
 
 ```
 packages/subgraph/       ringo-polygon: the subgraph indexing RingoManager on Polygon mainnet
+packages/dashboard/      a UI over the subgraph data, the part a judge can click through
 packages/worldid-gate/   standalone service that verifies an IDKit proof and records the nullifier
 packages/frontend/       the claim flow a user completes to prove personhood and receive the credit
 docs/                    architecture, the three queries, integration contracts, decision log
