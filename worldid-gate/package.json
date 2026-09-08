@@ -1,0 +1,12 @@
+{
+  "name": "ringo-worldid-gate",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Verifies a World ID proof and answers one question for the Ringo platform: has this human been verified?",
+  "engines": { "node": ">=22.5" },
+  "scripts": {
+    "start": "node src/server.js",
+    "test": "node --test --experimental-sqlite test/*.test.js"
+  }
+}

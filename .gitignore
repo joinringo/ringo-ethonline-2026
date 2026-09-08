@@ -17,3 +17,9 @@ subgraph/generated/
 
 .DS_Store
 *.log
+
+# Local org bootstrap, not part of the submission
+setup-org.sh
+
+# worldid-gate local state
+worldid-gate/data/
