@@ -25,8 +25,8 @@ const COLUMNS: ColumnNote[] = [
     note: "Both stakes added together, in USDC. The bar underneath is this market's share of the largest one on screen.",
   },
   {
-    term: "Sides",
-    note: "What each side staked. Nearly every Ringo is matched at even money, so this usually reads Even — the split is shown only when the two sides put in different amounts, which is where a price lives: $42 against $191 is the market calling that outcome roughly four to one. Blank for the v1-era markets stubbed from a resolution with no fill we decode.",
+    term: "Staked",
+    note: "What the two people put in. It is almost always the same on both sides, so it usually reads as a single figure. When the two differ, both are shown: $42 against $191 means the second person had to risk more to take the bet, because the first outcome was the likelier one. Blank for the v1-era markets stubbed from a resolution with no fill we decode.",
   },
   {
     term: "Opened",
@@ -72,7 +72,7 @@ export function MarketsTable({
               <th className={TH}>Market</th>
               <th className={TH}>Status</th>
               <th className={`${TH} text-right`}>Volume</th>
-              <th className={`${TH} text-right`}>Sides</th>
+              <th className={`${TH} text-right`}>Staked</th>
               <th className={`${TH} text-right`}>Opened</th>
             </tr>
           </thead>
@@ -115,16 +115,20 @@ export function MarketsTable({
 }
 
 /**
- * What each side put in, and the shape of the bet.
+ * What the two people put in.
  *
  * This column replaced Fills and People, which were constants: no market has
  * more than one fill and none has other than two participants, because a market
  * is keyed per ringo and therefore *is* one matched pair. Two of seven columns
- * reading 1 and 2 on every row told a reader nothing and invited the question.
+ * reading 1 and 2 on every row told a reader nothing.
  *
- * The split does vary, and it is the number a prediction market is actually
- * about: the ratio between the stakes is the price the two sides agreed on.
- * It is also the only place the Side A / Side B key in the header pays off.
+ * The replacement was first written on the assumption that the ratio between
+ * the stakes is where a prediction market's price lives. Measured, that is not
+ * what Ringo does: 8,480 of 8,779 fills are the same on both sides. So the
+ * common case is stated once as a plain figure, and the coloured split is kept
+ * for the rows that differ — the only rows where it says anything, and where it
+ * is now the thing that stands out. It is also the one place the Side A / Side
+ * B key in the header pays off.
  */
 function SideSplit({
   fill,
@@ -139,16 +143,17 @@ function SideSplit({
   const b = BigInt(fill.amountB);
   const total = a + b;
 
-  // Ringo is overwhelmingly matched at even money — 8,480 of 8,779 fills are
-  // exactly 50/50 — so printing the same figure twice is what this column would
-  // do on almost every row, and two identical amounts read as a rendering bug
-  // rather than as data. Saying "even" once is both shorter and truer, and it
-  // leaves the split to mean something on the rows where it differs.
+  // Ringo is overwhelmingly matched at the same amount on both sides — 8,480 of
+  // 8,779 fills — so printing the figure twice is what this column would do on
+  // almost every row, and two identical amounts read as a rendering bug.
+  //
+  // "$250.00 each" rather than "Even": even money is the term of art, and a
+  // reader who has never seen a prediction market should not have to know it to
+  // read a table. Each is the same fact in a word everyone already has.
   if (a === b) {
     return (
-      <span className="text-[13px] whitespace-nowrap">
-        <span className="text-muted">Even</span>
-        <span className="tnum ml-1.5 text-faint">${formatUsdc(a)} a side</span>
+      <span className="tnum text-[13px] whitespace-nowrap text-muted">
+        ${formatUsdc(a)} <span className="text-faint">each</span>
       </span>
     );
   }
