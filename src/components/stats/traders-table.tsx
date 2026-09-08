@@ -13,11 +13,11 @@ import type { Trader } from "@/lib/subgraph/queries";
 const COLUMNS: ColumnNote[] = [
   {
     term: "Address",
-    note: "The trader's smart account on Polygon. Every Ringo user has one — bets are sent as ERC-4337 user operations, not from a plain wallet. It links through to Polygonscan.",
+    note: "The smart account this player uses on Polygon. Ringo sends every call as an ERC-4337 user operation rather than from a plain wallet, which is why these are contracts. It links through to Polygonscan.",
   },
   {
     term: "Staked",
-    note: "Lifetime USDC this address put at risk, adding up whichever side of each bet it took. Not the same figure as Staked in the markets table above, which is what the two people put into one single bet.",
+    note: "Lifetime USDC this address has staked, adding up whichever side of each prediction it took. Not the same figure as Staked in the markets table above, which is what two people put into a single one.",
   },
   {
     term: "Record",
@@ -25,7 +25,7 @@ const COLUMNS: ColumnNote[] = [
   },
   {
     term: "Last seen",
-    note: "The last time this address appeared, either taking a side of a bet or winning one. Shown as a distance from today, and measured from the timestamp of the block the event landed in.",
+    note: "The last time this address appeared, either taking a side or winning one. Shown as a distance from today, and measured from the timestamp of the block the event landed in.",
   },
 ];
 

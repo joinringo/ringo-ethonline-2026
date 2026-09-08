@@ -20,8 +20,12 @@ const mono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: "Ringo — settled markets, indexed",
+  // Never "prediction market" here. This is the line a crawler indexes as the
+  // product category, and Ringo's public brand is a social challenge platform —
+  // see the branding doctrine in the webapp repo. "Market" stays the internal
+  // noun for an order-book position, which is what the table below shows.
   description:
-    "Every prediction market Ringo has opened under a tweet, read from a subgraph on The Graph Network.",
+    "Every challenge Ringo has settled under a tweet, read from a subgraph on The Graph Network.",
 };
 
 export default function RootLayout({

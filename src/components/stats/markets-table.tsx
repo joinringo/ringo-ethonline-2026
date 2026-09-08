@@ -26,7 +26,7 @@ const COLUMNS: ColumnNote[] = [
   },
   {
     term: "Staked",
-    note: "What the two people put in. It is almost always the same on both sides, so it usually reads as a single figure. When the two differ, both are shown: $42 against $191 means the second person had to risk more to take the bet, because the first outcome was the likelier one. Blank for the v1-era markets stubbed from a resolution with no fill we decode.",
+    note: "What the two people put in. It is almost always the same on both sides, so it usually reads as a single figure. When the two differ, both are shown: $42 against $191 means the second person had to stake more to take the other side, because the first outcome was the likelier one. The rail under the figures is that split — flat and faint when the sides are even, in full colour when they are not, so the rows that differ are findable without reading the numbers. Blank for the v1-era markets stubbed from a resolution with no fill we decode.",
   },
   {
     term: "Opened",
@@ -123,12 +123,20 @@ export function MarketsTable({
  * reading 1 and 2 on every row told a reader nothing.
  *
  * The replacement was first written on the assumption that the ratio between
- * the stakes is where a prediction market's price lives. Measured, that is not
+ * the stakes is where the price lives. Measured, that is not
  * what Ringo does: 8,480 of 8,779 fills are the same on both sides. So the
  * common case is stated once as a plain figure, and the coloured split is kept
  * for the rows that differ — the only rows where it says anything, and where it
  * is now the thing that stands out. It is also the one place the Side A / Side
  * B key in the header pays off.
+ *
+ * Every row is now the same shape — one line of figures over one rail — for two
+ * reasons. It puts the Staked figure on the same baseline as the Volume figure
+ * beside it, which a one-line cell sitting next to a two-line one cannot do.
+ * And it turns the exception into a change of colour rather than a change of
+ * shape: the rail is always the true split, drawn faint when the sides are even
+ * and at full strength when they are not, so a reader scanning the column finds
+ * the rows that differ without reading a single number.
  */
 function SideSplit({
   fill,
@@ -136,54 +144,108 @@ function SideSplit({
   fill: { amountA: string; amountB: string } | null;
 }) {
   if (fill === null) {
-    return <span className="text-[13px] text-faint">no fill indexed</span>;
+    return (
+      <StakedCell rail={<Rail />}>
+        <span className="text-faint">no fill indexed</span>
+      </StakedCell>
+    );
   }
 
   const a = BigInt(fill.amountA);
   const b = BigInt(fill.amountB);
+
+  // Percent in bigint, then to a number once: the ratio survives amounts that
+  // would lose precision as floats.
   const total = a + b;
+  const shareA = total > 0n ? Number((a * 1000n) / total) / 10 : 50;
 
   // Ringo is overwhelmingly matched at the same amount on both sides — 8,480 of
   // 8,779 fills — so printing the figure twice is what this column would do on
   // almost every row, and two identical amounts read as a rendering bug.
   //
   // "$250.00 each" rather than "Even": even money is the term of art, and a
-  // reader who has never seen a prediction market should not have to know it to
-  // read a table. Each is the same fact in a word everyone already has.
+  // reader who has never seen one of these should not have to know it to read a
+  // table. Each is the same fact in a word everyone already has.
   if (a === b) {
     return (
-      <span className="tnum text-[13px] whitespace-nowrap text-muted">
-        ${formatUsdc(a)} <span className="text-faint">each</span>
-      </span>
+      <StakedCell rail={<Rail shareA={shareA} quiet />}>
+        <span className="text-muted">${formatUsdc(a)}</span>
+        <Trailer>each</Trailer>
+      </StakedCell>
     );
   }
 
-  // Percent in bigint, then to a number once: the ratio survives amounts that
-  // would lose precision as floats.
-  const shareA =
-    total > 0n ? Number((a * 1000n) / total) / 10 : 50;
+  return (
+    <StakedCell rail={<Rail shareA={shareA} />}>
+      <span className="text-side-a">${formatUsdc(a)}</span>
+      <span className="mx-1.5 text-faint">vs</span>
+      <span className="text-side-b">${formatUsdc(b)}</span>
+      <Trailer />
+    </StakedCell>
+  );
+}
+
+/** Figures over a rail, both anchored on the cell's right edge — the same shape
+ *  and the same anchor as the Volume cell beside it, so the two columns land on
+ *  one baseline and their rails line up. */
+function StakedCell({
+  children,
+  rail,
+}: {
+  children: React.ReactNode;
+  rail: React.ReactNode;
+}) {
+  return (
+    <div className="flex flex-col items-end">
+      <span className="tnum text-[13px] whitespace-nowrap">{children}</span>
+      {rail}
+    </div>
+  );
+}
+
+/**
+ * The split, at the same length as the Volume rail next door.
+ *
+ * The two segments are chroma-matched by design, so they sit at 1.02:1 against
+ * each other — the split is invisible without colour vision. The gap makes it
+ * legible in greyscale. `quiet` is the even case: the bar is still the real
+ * ratio, drawn faint. Two matched halves at a quarter strength stay readable as
+ * a split without competing for the row — the colour is what marks the rows
+ * that are not even, so on the rows that are it has to recede.
+ */
+function Rail({ shareA, quiet }: { shareA?: number; quiet?: boolean }) {
+  if (shareA === undefined) {
+    // Holds the row's height open so the figures above it stay on the baseline.
+    return <span aria-hidden className="mt-1.5 block h-[3px] w-16" />;
+  }
 
   return (
-    <div className="inline-flex flex-col items-end gap-1.5">
-      <span className="tnum text-[13px] whitespace-nowrap">
-        <span className="text-side-a">${formatUsdc(a)}</span>
-        <span className="mx-1 text-faint">vs</span>
-        <span className="text-side-b">${formatUsdc(b)}</span>
-      </span>
-      {/* The two segments are chroma-matched by design, so they sit at 1.02:1
-          against each other — the split is invisible without colour vision.
-          The gap makes it legible in greyscale. */}
+    <span
+      aria-hidden
+      className={`mt-1.5 flex h-[3px] w-16 gap-[2px] ${quiet ? "opacity-25" : ""}`}
+    >
       <span
-        aria-hidden
-        className="flex h-[3px] w-20 gap-[2px] overflow-hidden rounded-full"
-      >
-        <span
-          style={{ width: `${shareA}%` }}
-          className="block h-full rounded-full bg-side-a/80"
-        />
-        <span className="block h-full flex-1 rounded-full bg-side-b/80" />
-      </span>
-    </div>
+        style={{ width: `${shareA}%` }}
+        className="block h-full rounded-full bg-side-a"
+      />
+      <span className="block h-full flex-1 rounded-full bg-side-b" />
+    </span>
+  );
+}
+
+/**
+ * A fixed slot after the last figure, reserved whether or not it is filled.
+ *
+ * Without it the column anchors on whatever ends the line — the word "each" on
+ * almost every row, a digit on the split ones — so no two kinds of row put
+ * their money in the same place. Reserving the slot gives the amounts one
+ * vertical axis and leaves the rails on the cell edge, which is the second.
+ */
+function Trailer({ children }: { children?: React.ReactNode }) {
+  return (
+    <span className="ml-1.5 inline-block w-8 text-left text-faint">
+      {children}
+    </span>
   );
 }
 

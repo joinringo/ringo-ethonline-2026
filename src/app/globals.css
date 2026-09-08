@@ -19,9 +19,14 @@
   --color-holo-ink: #0f1114;
   --color-mark: #fc5416;
 
-  /* Blue takes side A, crimson takes side B, everywhere, always. */
-  --color-side-a: #5b8cff;
-  --color-side-b: #ff4d6d;
+  /* Blue takes side A, rose takes side B, everywhere, always. Both are held at
+     the same relative luminance (1.02:1) so neither side reads as the winner
+     before the figures are read, and both are pulled off full saturation: this
+     page is greys and one mint accent, and a pure blue against a pure crimson
+     in the middle of a table shouts louder than the data. The rose also has to
+     stop reading as an error — side B is a side, not a loss. */
+  --color-side-a: #7a9dfb;
+  --color-side-b: #f77b95;
 
   --color-open: #5b8cff;
   --color-resolved: #2fd48a;

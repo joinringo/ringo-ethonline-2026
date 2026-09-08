@@ -1,7 +1,7 @@
 # Pre-existing work and new work
 
 Ringo is a live product since 2025: an AI agent on X that opens real-money
-prediction markets under tweets, an order book, USDC settlement on Polygon
+challenges under tweets, an order book, USDC settlement on Polygon
 through the RingoManager contract, and a web app. That code is closed source
 and predates ETHOnline 2026; none of it is submitted for judging.
 

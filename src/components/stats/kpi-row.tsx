@@ -27,14 +27,14 @@ export function KpiRow({ totals }: { totals: LifetimeTotals }) {
         label="Settled volume"
         value={`$${formatUsdcCompact(totals.volume)}`}
         note={`across ${formatCount(totals.days)} indexed days`}
-        hint="Both sides of every matched bet, added up. A $5 market with $5 against it counts as $10 staked, because that is what actually moved in USDC."
+        hint="Both sides of every matched prediction, added up. A $5 call with $5 against it counts as $10 staked, because that is what actually moved in USDC."
         accent
       />
       <Figure
         label="Fills"
         value={formatCount(totals.fills)}
         note={averageFill}
-        hint="One fill is one matched bet: two people took opposite sides and the money is locked. An unmatched offer is not a fill and never reaches the chain."
+        hint="One fill is one matched prediction: two people took opposite sides and the money is locked. An unmatched offer is not a fill and never reaches the chain."
       />
       <Figure
         label="Fees collected"

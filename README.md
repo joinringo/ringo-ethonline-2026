@@ -1,8 +1,13 @@
 # Ringo — ETHOnline 2026 (Continuity Track)
 
-Ringo opens a real-money prediction market under any tweet: mention
-`@joinringo` and a market appears with its own order book, settled in USDC on
-Polygon. Live since 2025.
+Ringo turns a tweet into a real-money challenge: mention `@joinringo`, someone
+takes the other side, and it settles in USDC on Polygon. Live since 2025.
+
+> Ringo's public brand is a social challenge platform, never a "prediction
+> market" — that construction is forbidden on any surface a crawler reads, per
+> the branding doctrine in the webapp repo. `Market` stays the internal noun for
+> an order-book position, which is why it appears throughout the schema and the
+> code.
 
 **Demo video:** [TODO: link after upload]
 
@@ -129,7 +134,7 @@ across days counts a trader once per day they appeared.
 The hero pairs the figures with the query that produced them — the number is
 not typed into a slide, it is the answer to a request anyone can run against
 the published subgraph. Blue is side A of a fill and crimson is side B, wherever
-the two sides of a bet appear — the key in the hero and the split in the markets
+the two sides of a call appear — the key in the hero and the split in the markets
 table. Nothing else borrows those two colours; a win and a loss are green and
 grey, because a record is not a side.
 
