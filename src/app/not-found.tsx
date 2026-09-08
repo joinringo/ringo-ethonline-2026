@@ -6,7 +6,7 @@ export default function NotFound() {
       <div className="holo-card w-full rounded-xl">
         <div className="flex items-center gap-2.5 border-b border-hairline px-5 py-3.5">
           <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-faint" />
-          <p className="font-mono text-[12px] tracking-[0.14em] text-faint uppercase">
+          <p className="text-[12px] tracking-[0.14em] text-faint uppercase">
             404
           </p>
         </div>

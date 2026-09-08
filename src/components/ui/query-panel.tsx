@@ -78,7 +78,7 @@ export function QueryPanel({
             <Dot className="bg-faint/25" />
             <Dot className="bg-faint/20" />
           </span>
-          <p className="ml-1 truncate font-mono text-[12px] text-muted">
+          <p className="ml-1 truncate text-[12px] text-muted">
             {filename}
           </p>
         </div>
@@ -113,7 +113,7 @@ export function QueryPanel({
         {result.state === "idle" ? null : (
           <div className="border-t border-hairline">
             <div className="flex flex-wrap items-center justify-between gap-2 bg-raised/30 px-4 py-2">
-              <p className="font-mono text-[11px] tracking-[0.06em] text-faint uppercase">
+              <p className="text-[11px] tracking-[0.06em] text-faint uppercase">
                 Response
               </p>
               {result.state === "ok" ? (

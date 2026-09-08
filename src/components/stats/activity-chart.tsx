@@ -54,7 +54,7 @@ export function ActivityChart({ series }: { series: DailyPoint[] }) {
           ))}
         </div>
 
-        <div className="mt-3 flex justify-between font-mono text-[11px] text-faint">
+        <div className="mt-3 flex justify-between text-[11px] text-faint">
           <span>{formatDayLabel(first.date)}</span>
           <span>{formatDayLabel(last.date)}</span>
         </div>
@@ -100,7 +100,7 @@ function Bar({
       >
         {/* muted, not faint: this bubble sits on --color-overlay, the lightest
             surface on the page, where faint drops to 4.2:1. */}
-        <p className="font-mono text-[11px] text-muted">
+        <p className="text-[11px] text-muted">
           {formatDayLabel(point.date)} UTC
         </p>
         <p className="tnum mt-1 text-[13px] font-medium">

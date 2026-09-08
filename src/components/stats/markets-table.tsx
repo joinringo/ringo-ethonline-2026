@@ -1,4 +1,4 @@
-import { RANK, ROW, TD, TH } from "@/components/stats/table";
+import { POLYGONSCAN, RANK, ROW, TD, TH } from "@/components/stats/table";
 import { Card, SectionHead } from "@/components/ui/card";
 import { Empty } from "@/components/ui/empty";
 import {
@@ -18,7 +18,7 @@ const COLUMNS: ColumnNote[] = [
   },
   {
     term: "Status",
-    note: "Settled means the contract paid out and named a winner. Voided means the market was invalidated and no side won. Open means no resolution has been indexed yet.",
+    note: "Settled means the contract paid out, and the label beside it says which of the two sides collected. Voided means it was invalidated and nobody won. Open means no resolution has been indexed yet. A few settled rows show an address instead of a side: those predate the fill event this subgraph decodes, so there is no pair to match the winner against.",
   },
   {
     term: "Volume",
@@ -81,7 +81,7 @@ export function MarketsTable({
               <tr key={market.id} className={ROW}>
                 <td className={RANK}>{index + 1}</td>
                 <td className={TD}>
-                  <span className="font-mono text-[13px] whitespace-nowrap text-ink">
+                  <span className="text-[13px] whitespace-nowrap text-ink">
                     {shortAddress(market.id)}
                   </span>
                 </td>
@@ -89,6 +89,7 @@ export function MarketsTable({
                   <StatusMark
                     status={market.status}
                     winner={market.resolution?.resolver ?? null}
+                    fill={market.ringos[0] ?? null}
                   />
                 </td>
                 <td className={`${TD} text-right`}>
@@ -138,13 +139,25 @@ export function MarketsTable({
  * when they are not, so the rows that differ are findable without reading a
  * number.
  *
- * The column has exactly one vertical anchor, the cell's right edge, and the
- * header, the last figure and the rail all sit on it. Giving the amounts their
- * own axis — a fixed slot reserved after the word "each", so "$250.00" and
- * "$191.88" end at the same x — was tried and is worse: it buys alignment
- * between two kinds of row that are meant to look different, and pays for it by
- * pulling every figure off the edge the header and the rails still use. One
- * anchor everything shares beats two that each hold half the column.
+ * The column right-aligns, like Volume and Opened. Two other anchors were
+ * tried and measured first, and both are worse.
+ *
+ * Reserving a fixed slot after "each", so that "$250.00" and "$191.88" end at
+ * the same x, pulls every figure off the edge the header and the rails still
+ * sit on: three right edges where the rest of the table has one.
+ *
+ * Centring is worse still, and it fails in a way that is invisible until you
+ * draw the column guides. Every other column in this table ends — or begins —
+ * on a hard edge of glyphs: the addresses all start at one x, the volumes and
+ * the dates all finish at one x. A centred column has no such edge by
+ * construction. "$250.00 each" and "$42.12 vs $191.88" share a centre, so their
+ * digits land in different places on every row and the column reads as the one
+ * thing in the table that will not line up. That it is centred under its own
+ * header does not rescue it; a header is one row and the edge is all of them.
+ *
+ * Right-aligned, the 8,480 of 8,779 rows that read "$N each" stack their digits
+ * exactly, because "each" is a constant width. The few rows that differ break
+ * the stack, which is the point: those are the rows worth looking at.
  */
 function SideSplit({
   fill,
@@ -193,9 +206,17 @@ function SideSplit({
 }
 
 /**
- * Figures over a rail, both anchored on the cell's right edge — the same shape
- * and the same anchor as the Volume cell beside it, so the two columns land on
- * one baseline and their rails line up.
+ * Figures over a rail as wide as they are.
+ *
+ * The box shrinks to the figures — `inline-flex`, placed by the cell's own
+ * `text-right` — and the rail, stretched by the column's default cross-axis
+ * alignment, comes out exactly that width. So the rail starts where the money
+ * starts and ends where the line ends, on every row, whatever the row says. A
+ * fixed-width rail pinned to the cell edge cannot do that: on an even row it
+ * lands under the word "each" instead of under the amount.
+ *
+ * The shape — one line of figures, then a rail — is the Volume cell's, which is
+ * what puts the two columns' figures on one baseline.
  *
  * The figures take the table's own size rather than a step down. They are money
  * in the column next to money, and a 13px amount beside a 14px one reads as a
@@ -210,25 +231,29 @@ function StakedCell({
   rail: React.ReactNode;
 }) {
   return (
-    <div className="flex flex-col items-end">
-      <span className="tnum whitespace-nowrap">{children}</span>
+    <div className="inline-flex flex-col">
+      <span className="tnum flex items-baseline gap-1.5 whitespace-nowrap">
+        {children}
+      </span>
       {rail}
     </div>
   );
 }
 
-/** The connective tissue between figures — "each", "vs". Set below the figures
- *  so the eye lands on the money first. */
+/** The connective tissue between figures — "each", "vs". A step below them so
+ *  the eye lands on the money first; spacing comes from the line's gap. */
 function Word({ children }: { children: React.ReactNode }) {
-  return (
-    <span className="mx-1.5 text-[12.5px] font-normal text-faint">
-      {children}
-    </span>
-  );
+  return <span className="text-[12.5px] text-faint">{children}</span>;
 }
 
 /**
- * The split, at the same length as the Volume rail next door.
+ * The split, drawn the width of the figures above it.
+ *
+ * Volume's rail keeps a fixed width and this one does not, because they measure
+ * different things. Volume's is a share of the largest row on screen, so its
+ * track is the scale and has to be identical on every row or the lengths stop
+ * being comparable. This one is a ratio inside its own row; nothing compares
+ * across rows, so the width is free to say which figures it belongs to.
  *
  * The two segments are chroma-matched by design, so they sit at 1.02:1 against
  * each other — the split is invisible without colour vision. The gap makes it
@@ -240,13 +265,13 @@ function Word({ children }: { children: React.ReactNode }) {
 function Rail({ shareA, quiet }: { shareA?: number; quiet?: boolean }) {
   if (shareA === undefined) {
     // Holds the row's height open so the figures above it stay on the baseline.
-    return <span aria-hidden className="mt-1.5 block h-[3px] w-16" />;
+    return <span aria-hidden className="mt-1.5 block h-[3px]" />;
   }
 
   return (
     <span
       aria-hidden
-      className={`mt-1.5 flex h-[3px] w-16 gap-[2px] ${quiet ? "opacity-25" : ""}`}
+      className={`mt-1.5 flex h-[3px] gap-[2px] ${quiet ? "opacity-25" : ""}`}
     >
       <span
         style={{ width: `${shareA}%` }}
@@ -260,26 +285,74 @@ function Rail({ shareA, quiet }: { shareA?: number; quiet?: boolean }) {
 /**
  * The resolution event carries an amount and an address. The amount is not
  * shown: markets are keyed per ringo, so it always equals the volume in the
- * next column. The winner is the only thing settlement adds.
+ * next column. The address is the winner, and it is the only thing settlement
+ * adds that the row does not already say.
+ *
+ * It used to be printed as a truncated hash, which is honest and nearly
+ * useless: nobody learns anything from 0xfa32…b317. Matching it against the two
+ * sides of the fill turns it into which side won — the same fact in the
+ * vocabulary the hero key and the Staked column already taught. Checked across
+ * every settled market in the index: the winner is one of the two traders 8,289
+ * times, and neither of them zero times.
+ *
+ * The other 1,114 are v1-era markets with no fill to match against, so the
+ * address is all there is. It is shown and linked rather than dropped.
+ *
+ * The winner sits on the badge's line rather than under it, and that is a
+ * layout constraint before it is a taste: it was the only cell in the table
+ * that could be two lines tall, so a settled row stood 21px taller than a
+ * voided one and every column beside it hung from the top of the extra space.
+ * The table had no steady row rhythm. One line per row everywhere is what
+ * gives it one.
  */
 function StatusMark({
   status,
   winner,
+  fill,
 }: {
   status: Market["status"];
   winner: string | null;
+  fill: { userA: { id: string }; userB: { id: string } } | null;
 }) {
   if (status === "INVALID") return <Pill tone="invalid">Voided</Pill>;
   if (status !== "RESOLVED") return <Pill tone="open">Open</Pill>;
 
+  const side = winningSide(winner, fill);
+
   return (
-    <div>
+    <span className="whitespace-nowrap">
       <Pill tone="resolved">Settled</Pill>
-      {winner === null ? null : (
-        <span className="mt-1.5 block font-mono text-[12px] whitespace-nowrap text-faint">
-          won by {shortAddress(winner)}
+
+      {side !== null ? (
+        <span
+          className={`ml-2 text-[12px] ${
+            side === "A" ? "text-side-a" : "text-side-b"
+          }`}
+        >
+          Side {side} won
         </span>
+      ) : winner === null ? null : (
+        <a
+          href={`${POLYGONSCAN}${winner}`}
+          target="_blank"
+          rel="noreferrer noopener"
+          className="ml-2 font-mono text-[12px] text-faint transition-colors hover:text-muted"
+        >
+          won by {shortAddress(winner)}
+        </a>
       )}
-    </div>
+    </span>
   );
+}
+
+/** Which side of the fill the winning address is, or null when it cannot be told. */
+function winningSide(
+  winner: string | null,
+  fill: { userA: { id: string }; userB: { id: string } } | null
+): "A" | "B" | null {
+  if (winner === null || fill === null) return null;
+  const w = winner.toLowerCase();
+  if (w === fill.userA.id.toLowerCase()) return "A";
+  if (w === fill.userB.id.toLowerCase()) return "B";
+  return null;
 }

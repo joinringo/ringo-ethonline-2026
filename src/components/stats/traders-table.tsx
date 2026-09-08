@@ -77,7 +77,7 @@ export function TradersTable({
                     href={`${POLYGONSCAN}${trader.id}`}
                     target="_blank"
                     rel="noreferrer noopener"
-                    className="inline-flex items-center gap-1.5 font-mono text-[13px] transition-colors hover:text-holo"
+                    className="inline-flex items-center gap-1.5 text-[13px] transition-colors hover:text-holo"
                   >
                     {shortAddress(trader.id)}
                     <ExternalIcon />

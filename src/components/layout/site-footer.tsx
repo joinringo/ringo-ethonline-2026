@@ -6,7 +6,7 @@ export function SiteFooter() {
           Markets settle in USDC on Polygon. Every figure on this page is read
           from the ringo-polygon subgraph, not from Ringo&rsquo;s database.
         </p>
-        <p className="shrink-0 font-mono text-[12px] tracking-tight">
+        <p className="shrink-0 text-[12px] tracking-tight">
           ETHOnline 2026
         </p>
       </div>

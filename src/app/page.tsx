@@ -57,18 +57,28 @@ async function Stats({ limits }: { limits: StatsLimits }) {
   const { totals, series, markets, traders } = await getStatsPageData(limits);
 
   return (
+    // The ids are the header's anchors and the targets it tracks to mark the
+    // active link — see components/layout/site-header.
     <div className="flex flex-col gap-10">
-      <LifetimeHero totals={totals} query={LIFETIME_QUERY} />
-      <KpiRow totals={totals} />
-      <ActivityChart series={series} />
-      <MarketsTable
-        markets={markets}
-        moreHref={moreHref("markets", limits, markets.length)}
-      />
-      <TradersTable
-        traders={traders}
-        moreHref={moreHref("traders", limits, traders.length)}
-      />
+      <div id="overview" className="flex flex-col gap-10">
+        <LifetimeHero totals={totals} query={LIFETIME_QUERY} />
+        <KpiRow totals={totals} />
+      </div>
+      <div id="activity">
+        <ActivityChart series={series} />
+      </div>
+      <div id="markets">
+        <MarketsTable
+          markets={markets}
+          moreHref={moreHref("markets", limits, markets.length)}
+        />
+      </div>
+      <div id="traders">
+        <TradersTable
+          traders={traders}
+          moreHref={moreHref("traders", limits, traders.length)}
+        />
+      </div>
     </div>
   );
 }

@@ -36,6 +36,12 @@ export const TOP_MARKETS_QUERY = /* GraphQL */ `
       ringos(first: 1) {
         amountA
         amountB
+        userA {
+          id
+        }
+        userB {
+          id
+        }
       }
     }
   }
@@ -106,7 +112,12 @@ export type Market = {
    * one matched pair. Empty for the v1-era markets that were stubbed from a
    * resolution with no creation we decode.
    */
-  ringos: { amountA: string; amountB: string }[];
+  ringos: {
+    amountA: string;
+    amountB: string;
+    userA: { id: string };
+    userB: { id: string };
+  }[];
 };
 
 export type Trader = {

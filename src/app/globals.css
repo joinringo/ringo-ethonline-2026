@@ -409,6 +409,40 @@ summary,
   );
 }
 
+/* ── Header ──────────────────────────────────────────────────────────────
+   The nav's own outline doubles as the scroll read-out. The gradient is
+   painted into the 1px padding box and the content box is masked back out, so
+   what is left is exactly the border ring — a real rounded outline that fills,
+   which `border-image` cannot do on a pill.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.nav-ring {
+  position: absolute;
+  inset: 0;
+  padding: 1px;
+  border-radius: inherit;
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  mask-composite: exclude;
+}
+
+/* Anchor jumps land under the sticky band otherwise. */
+html {
+  scroll-padding-top: 6.5rem;
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  html {
+    scroll-behavior: smooth;
+  }
+}
+
 /* ── Utilities ───────────────────────────────────────────────────────────── */
 
 /* Every figure is meant to be compared to the one above it. */
