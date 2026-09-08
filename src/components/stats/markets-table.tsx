@@ -22,27 +22,27 @@ import type { Market } from "@/lib/subgraph/queries";
 const COLUMNS: ColumnNote[] = [
   {
     term: "Market",
-    note: "The claim as it was written, above the market's id. The claim reaches no log — RingoManager takes it as a calldata argument — so the index reads it back from the contract the factory deployed for that ringo. The id below it is keccak256 of Ringo's own ringoId, which is all the log carries, since the id is indexed on a dynamic type. A few rows show only the id: those are markets whose fill this index never saw, so there is no contract to ask.",
+    note: "The claim as it was written, with the market's id under it. A few rows show only the id: the index never saw their fill, so there was no contract to read the claim from.",
   },
   {
     term: "Status",
-    note: "Where the market got to. Settled means the contract paid out. Voided means it was invalidated and nobody won. Open means no resolution has been indexed yet.",
+    note: "Where the market got to. Settled paid out, Voided was thrown out and nobody won, Open has no resolution indexed yet.",
   },
   {
     term: "Answer",
-    note: "What the claim turned out to be. The contract fixes side A as the yes side, so the winning address is the answer — shown in the two colours the key at the top of the page teaches. Invalid is a market that was thrown out, where there is no answer to give. A dash is a settled market whose fill predates this index: there is no pair to place the winner against, so the answer is genuinely unavailable rather than unknown.",
+    note: "What the claim turned out to be, in the two colours the key at the top of the page teaches. A dash is a settled market whose winner cannot be matched to a side, so there is no answer to give.",
   },
   {
     term: "Volume",
-    note: "Both stakes added together, in USDC. The bar underneath is this market's share of the largest one on screen.",
+    note: "Both stakes added together, in USDC. The bar is this market's share of the largest one on screen.",
   },
   {
     term: "Staked",
-    note: "What the two people put in. It is almost always the same on both sides, so it usually reads as a single figure. When the two differ, both are shown: $42 against $191 means the second person had to stake more to take the other side, because the first outcome was the likelier one. The rail under the figures is that split — flat and faint when the sides are even, in full colour when they are not, so the rows that differ are findable without reading the numbers. Blank for the v1-era markets stubbed from a resolution with no fill we decode.",
+    note: "What each side put in. Almost always the same, so it reads as one figure; when the two differ, that split is the price they agreed on.",
   },
   {
     term: "Opened",
-    note: "When the market was created, in UTC. For markets that predate the creation event this subgraph decodes, it falls back to the first event actually seen.",
+    note: "When the market was created, in UTC.",
   },
 ];
 
