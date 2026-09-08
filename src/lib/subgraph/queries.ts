@@ -33,6 +33,10 @@ export const TOP_MARKETS_QUERY = /* GraphQL */ `
       resolution {
         resolver
       }
+      ringos(first: 1) {
+        amountA
+        amountB
+      }
     }
   }
 `;
@@ -96,6 +100,13 @@ export type Market = {
    * its own creation event — see the schema note on Market.winner.
    */
   resolution: { resolver: string | null } | null;
+  /**
+   * The market's fill. A list because `ringos` is a derived field, but never
+   * more than one entry: markets are keyed per ringo, so a market holds exactly
+   * one matched pair. Empty for the v1-era markets that were stubbed from a
+   * resolution with no creation we decode.
+   */
+  ringos: { amountA: string; amountB: string }[];
 };
 
 export type Trader = {

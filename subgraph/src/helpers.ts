@@ -2,6 +2,7 @@ import { Address, BigInt, Bytes, ethereum } from "@graphprotocol/graph-ts";
 import {
   DailyActiveTrader,
   DailyStat,
+  Global,
   Market,
   MarketParticipant,
   Trader,
@@ -28,6 +29,17 @@ export function dayStart(timestamp: BigInt): BigInt {
   return timestamp.div(SECONDS_PER_DAY).times(SECONDS_PER_DAY);
 }
 
+/** The single counter row. Created on first use rather than in a block handler. */
+export function loadGlobal(): Global {
+  let global = Global.load("global");
+  if (global == null) {
+    global = new Global("global");
+    global.traders = 0;
+    global.markets = 0;
+  }
+  return global as Global;
+}
+
 export function loadTrader(address: Address, timestamp: BigInt): Trader {
   let id = address.toHexString();
   let trader = Trader.load(id);
@@ -36,6 +48,12 @@ export function loadTrader(address: Address, timestamp: BigInt): Trader {
     trader.volume = ZERO_BI;
     trader.wins = 0;
     trader.losses = 0;
+
+    // Counted here, where "first time this address is seen" is known. Every
+    // caller saves the trader it gets back, so this cannot drift from the rows.
+    let global = loadGlobal();
+    global.traders = global.traders + 1;
+    global.save();
   }
   trader.lastActive = timestamp;
   return trader as Trader;

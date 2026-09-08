@@ -1,0 +1,47 @@
+export type ColumnNote = { term: string; note: React.ReactNode };
+
+/**
+ * Column definitions, as a disclosure under the table.
+ *
+ * This replaces a per-header hover bubble. That bubble was absolutely
+ * positioned inside a `<th>`, so it always had a clipping ancestor — the card
+ * is `overflow-hidden`, and while the table needs a scroller the wrapper is
+ * too, which also counted the bubble's width into the scrollable area. Here
+ * there is nothing to clip and nothing to measure: it works at every width,
+ * opens on keyboard without any JS, and takes the seven `?` markers out of a
+ * header row that has to stay scannable.
+ */
+export function ColumnGlossary({ items }: { items: ColumnNote[] }) {
+  return (
+    // Sits between the section head and the table, so it borders below only —
+    // the head already draws the rule above it.
+    <details className="group border-b border-hairline">
+      <summary className="flex cursor-pointer list-none items-center justify-between gap-4 px-5 py-3 text-[12.5px] text-faint transition-colors hover:text-muted">
+        What these columns mean
+        <svg
+          viewBox="0 0 16 16"
+          className="h-3.5 w-3.5 shrink-0 transition-transform duration-200 group-open:rotate-180"
+          aria-hidden
+        >
+          <path
+            d="m4 6.5 4 4 4-4"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
+      </summary>
+
+      <dl className="grid gap-x-10 gap-y-3.5 border-t border-hairline-soft px-5 py-4 text-[12.5px] leading-relaxed sm:grid-cols-2">
+        {items.map((item) => (
+          <div key={item.term}>
+            <dt className="font-medium text-ink">{item.term}</dt>
+            <dd className="mt-0.5 text-muted">{item.note}</dd>
+          </div>
+        ))}
+      </dl>
+    </details>
+  );
+}

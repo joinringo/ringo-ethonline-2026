@@ -1,12 +1,38 @@
 import { RANK, ROW, TD, TH } from "@/components/stats/table";
 import { Card, SectionHead } from "@/components/ui/card";
 import { Empty } from "@/components/ui/empty";
-import { Info } from "@/components/ui/info";
+import {
+  ColumnGlossary,
+  type ColumnNote,
+} from "@/components/stats/column-glossary";
 import { Pill } from "@/components/ui/pill";
 import { ShareBar } from "@/components/ui/share-bar";
 import { ShowMore } from "@/components/ui/show-more";
-import { formatCount, formatDate, formatUsdc, shortAddress } from "@/lib/format";
+import { formatDate, formatUsdc, shortAddress } from "@/lib/format";
 import type { Market } from "@/lib/subgraph/queries";
+
+const COLUMNS: ColumnNote[] = [
+  {
+    term: "Market",
+    note: "The market's id, which is keccak256 of Ringo's own ringoId. The contract indexes that id on a dynamic type, so the log carries only its hash and never the readable value. The claim text is not on chain at all.",
+  },
+  {
+    term: "Status",
+    note: "Settled means the contract paid out and named a winner. Voided means the market was invalidated and no side won. Open means no resolution has been indexed yet.",
+  },
+  {
+    term: "Volume",
+    note: "Both stakes added together, in USDC. The bar underneath is this market's share of the largest one on screen.",
+  },
+  {
+    term: "Sides",
+    note: "What each side staked. The two never have to match: a bet at even money is 1 against 1, and a lopsided one is where the price lives — $3 against $1 is the market pricing that outcome at roughly 3 to 1. Blank for the v1-era markets that were stubbed from a resolution with no fill we decode.",
+  },
+  {
+    term: "Opened",
+    note: "When the market was created, in UTC. For markets that predate the creation event this subgraph decodes, it falls back to the first event actually seen.",
+  },
+];
 
 export function MarketsTable({
   markets,
@@ -36,58 +62,18 @@ export function MarketsTable({
         note="Ranked by settled volume. The bar under each figure is its share of the largest market here."
       />
 
+      <ColumnGlossary items={COLUMNS} />
+
       <div className="overflow-x-auto">
         <table className="w-full min-w-[640px] border-collapse text-[14px]">
           <thead>
             <tr className="border-b border-hairline bg-raised/30 text-left">
               <th className={`${TH} w-10`}>#</th>
-              <th className={TH}>
-                Market
-                <Info>
-                  The market&rsquo;s id, which is keccak256 of Ringo&rsquo;s own
-                  ringoId. The contract indexes that id on a dynamic type, so
-                  the log carries only its hash and never the readable value.
-                  The claim text is not on chain at all.
-                </Info>
-              </th>
-              <th className={TH}>
-                Status
-                <Info>
-                  Settled means the contract paid out and named a winner. Voided
-                  means the market was invalidated and no side won. Open means
-                  no resolution has been indexed yet.
-                </Info>
-              </th>
-              <th className={`${TH} text-right`}>
-                Volume
-                <Info align="right">
-                  Both stakes added together, in USDC. The bar underneath is
-                  this market&rsquo;s share of the largest one on screen.
-                </Info>
-              </th>
-              <th className={`${TH} text-right`}>
-                Fills
-                <Info align="right">
-                  Matched bets in this market. It is almost always 1: markets
-                  are keyed per ringo, so one market is one matched pair.
-                </Info>
-              </th>
-              <th className={`${TH} text-right`}>
-                People
-                <Info align="right">
-                  Distinct addresses that took a side, counted once each using
-                  marker entities written while indexing — a subgraph cannot
-                  count distinct values at query time.
-                </Info>
-              </th>
-              <th className={`${TH} text-right`}>
-                Opened
-                <Info align="right">
-                  When the market was created, in UTC. For markets that predate
-                  the creation event this subgraph decodes, it falls back to the
-                  first event actually seen.
-                </Info>
-              </th>
+              <th className={TH}>Market</th>
+              <th className={TH}>Status</th>
+              <th className={`${TH} text-right`}>Volume</th>
+              <th className={`${TH} text-right`}>Sides</th>
+              <th className={`${TH} text-right`}>Opened</th>
             </tr>
           </thead>
           <tbody>
@@ -111,11 +97,8 @@ export function MarketsTable({
                   </span>
                   <ShareBar value={BigInt(market.volume)} of={top} />
                 </td>
-                <td className={`${TD} tnum text-right text-muted`}>
-                  {formatCount(market.fills)}
-                </td>
-                <td className={`${TD} tnum text-right text-muted`}>
-                  {formatCount(market.participants)}
+                <td className={`${TD} text-right`}>
+                  <SideSplit fill={market.ringos[0] ?? null} />
                 </td>
                 <td className={`${TD} text-right whitespace-nowrap text-muted`}>
                   {formatDate(market.createdAt)}
@@ -128,6 +111,54 @@ export function MarketsTable({
 
       <ShowMore href={moreHref} shown={markets.length} noun="markets" />
     </Card>
+  );
+}
+
+/**
+ * What each side put in, and the shape of the bet.
+ *
+ * This column replaced Fills and People, which were constants: no market has
+ * more than one fill and none has other than two participants, because a market
+ * is keyed per ringo and therefore *is* one matched pair. Two of seven columns
+ * reading 1 and 2 on every row told a reader nothing and invited the question.
+ *
+ * The split does vary, and it is the number a prediction market is actually
+ * about: the ratio between the stakes is the price the two sides agreed on.
+ * It is also the only place the Side A / Side B key in the header pays off.
+ */
+function SideSplit({
+  fill,
+}: {
+  fill: { amountA: string; amountB: string } | null;
+}) {
+  if (fill === null) {
+    return <span className="text-[13px] text-faint">no fill indexed</span>;
+  }
+
+  const a = BigInt(fill.amountA);
+  const b = BigInt(fill.amountB);
+  const total = a + b;
+
+  // Percent in bigint, then to a number once: the ratio survives amounts that
+  // would lose precision as floats.
+  const shareA =
+    total > 0n ? Number((a * 1000n) / total) / 10 : 50;
+
+  return (
+    <div className="inline-flex flex-col items-end gap-1.5">
+      <span className="tnum text-[13px] whitespace-nowrap">
+        <span className="text-side-a">${formatUsdc(a)}</span>
+        <span className="mx-1 text-faint">vs</span>
+        <span className="text-side-b">${formatUsdc(b)}</span>
+      </span>
+      <span
+        aria-hidden
+        className="flex h-[3px] w-20 overflow-hidden rounded-full"
+      >
+        <span style={{ width: `${shareA}%` }} className="block h-full bg-side-a/80" />
+        <span className="block h-full flex-1 bg-side-b/80" />
+      </span>
+    </div>
   );
 }
 

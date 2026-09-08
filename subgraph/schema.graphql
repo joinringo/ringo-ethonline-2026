@@ -173,6 +173,23 @@ type DailyStat @entity(immutable: false) {
   activeTraders: Int!
 }
 
+"""
+Totals a query cannot compute.
+
+A subgraph has no COUNT at query time, so "how many distinct traders are there"
+either gets accumulated while indexing or does not exist. Paging every Trader
+row to measure its own length is the alternative, and it stops working the day
+the answer passes 1000.
+"""
+type Global @entity(immutable: false) {
+  "Always \"global\". There is one row."
+  id: ID!
+  "Distinct addresses that have taken a side or won a resolution"
+  traders: Int!
+  "Markets seen, including the ones stubbed from a resolution we could not pair with a creation"
+  markets: Int!
+}
+
 # ---------------------------------------------------------------------------
 # Internal deduplication entities. Not meant to be queried by the agent or the
 # stats page — they exist because counting distinct things in a subgraph needs

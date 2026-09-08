@@ -98,7 +98,9 @@ function Bar({
       <div
         className={`pointer-events-none absolute bottom-full z-20 mb-2 hidden w-max rounded-lg border border-hairline bg-overlay px-3 py-2 shadow-lg shadow-black/40 group-hover:block ${TOOLTIP_ALIGN[align]}`}
       >
-        <p className="font-mono text-[11px] text-faint">
+        {/* muted, not faint: this bubble sits on --color-overlay, the lightest
+            surface on the page, where faint drops to 4.2:1. */}
+        <p className="font-mono text-[11px] text-muted">
           {formatDayLabel(point.date)} UTC
         </p>
         <p className="tnum mt-1 text-[13px] font-medium">

@@ -59,8 +59,8 @@ export function KpiRow({ totals }: { totals: LifetimeTotals }) {
       <Figure
         label="Days indexed"
         value={formatCount(totals.days)}
-        note="days with at least one fill"
-        hint="The subgraph writes a row only for days something happened, so this counts active days rather than calendar days since launch."
+        note={`${formatCount(totals.volumeDays)} of them had a fill`}
+        hint="Days the index wrote a row for, meaning anything happened — a fill or a fee arriving. Fewer of them carry volume, because fees are indexed from the start block while fills only exist from the block the current creation event starts firing at. Not calendar days since launch."
       />
     </dl>
   );

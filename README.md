@@ -128,7 +128,10 @@ across days counts a trader once per day they appeared.
 
 The hero pairs the figures with the query that produced them — the number is
 not typed into a slide, it is the answer to a request anyone can run against
-the published subgraph. Blue is side A of a fill, crimson is side B, everywhere.
+the published subgraph. Blue is side A of a fill and crimson is side B, wherever
+the two sides of a bet appear — the key in the hero and the split in the markets
+table. Nothing else borrows those two colours; a win and a loss are green and
+grey, because a record is not a side.
 
 ## AI use
 

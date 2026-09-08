@@ -11,7 +11,7 @@
 
   --color-ink: #e8ebf4;
   --color-muted: #8b93a7;
-  --color-faint: #5c6478;
+  --color-faint: #737d96;
 
   /* The foil is the accent — figures, bars, links, focus. The mark's orange is
      the logo and nothing else, never data. */
@@ -74,6 +74,21 @@
     transparent
   );
 
+  /* Button fill. Colour at the EDGES against a white core: that local contrast
+     is what reads as foil at button size, where evenly tinted stops read as a
+     flat pastel slab. */
+  --gradient-holo-sweep: linear-gradient(
+    100deg,
+    #a8ecec 0%,
+    #eaf4fb 36%,
+    #ffffff 54%,
+    #ecdcf3 78%,
+    #cfe6f7 100%
+  );
+
+  /* Space-separated, not the comma list in the source: `rgb(var(--holo-rgb) /
+     a)` only parses with the modern syntax. */
+  --holo-rgb: 165 247 242;
 }
 
 html {
@@ -87,6 +102,17 @@ html {
 body {
   font-family: var(--font-sans);
   font-feature-settings: "cv05", "ss01";
+}
+
+/* Tailwind v4 dropped `cursor: pointer` on buttons from Preflight, so every
+   <button> falls back to the browser default. That is a global affordance, not
+   a per-component decision — restoring it here means a new button cannot ship
+   without it. `:not(:disabled)` leaves genuinely disabled controls alone, and
+   any explicit utility still wins, since utilities cascade after base. */
+button:not(:disabled),
+summary,
+[role="button"]:not(:disabled) {
+  cursor: pointer;
 }
 
 /* ── Atmosphere ──────────────────────────────────────────────────────────
@@ -307,6 +333,47 @@ body {
   opacity: var(--card-foil-hover);
 }
 
+/* ── Actions ─────────────────────────────────────────────────────────────
+   ringo-marketing's .holo-fill. The foil is a highlight, never a flat tint:
+   a solid --color-holo at button size is a pastel slab, which is what this
+   replaces.
+   ───────────────────────────────────────────────────────────────────────── */
+
+.holo-fill {
+  background-image: var(--gradient-holo-sweep);
+  color: var(--color-holo-ink);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.6),
+    0 1px 2px rgb(0 0 0 / 0.55);
+  transition:
+    filter 0.25s ease,
+    box-shadow 0.25s ease,
+    transform 0.25s ease;
+}
+
+.holo-fill:hover:not(:disabled) {
+  filter: saturate(1.1) brightness(1.03);
+}
+
+/* Primary actions only — after .holo-fill so it wins the shadow. */
+.holo-fill-glow {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.6),
+    0 1px 2px rgb(0 0 0 / 0.55),
+    0 12px 36px -14px rgb(var(--holo-rgb) / 0.6);
+}
+
+.holo-fill-glow:hover:not(:disabled) {
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.72),
+    0 1px 2px rgb(0 0 0 / 0.55),
+    0 16px 46px -14px rgb(var(--holo-rgb) / 0.75);
+}
+
+.holo-fill:disabled {
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.35);
+}
+
 /* ── Foil on content ─────────────────────────────────────────────────────── */
 
 .holo-text {
@@ -318,6 +385,17 @@ body {
 
 .holo-line {
   background-image: var(--gradient-holo-line);
+}
+
+/* A rule that fades at both ends instead of hitting the viewport edge. */
+.hairline-rule {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    rgb(255 255 255 / 0.09) 18%,
+    rgb(255 255 255 / 0.09) 82%,
+    transparent
+  );
 }
 
 /* ── Utilities ───────────────────────────────────────────────────────────── */

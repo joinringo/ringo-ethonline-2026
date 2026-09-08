@@ -15,6 +15,7 @@ import {
   creditRecord,
   eventId,
   loadDailyStat,
+  loadGlobal,
   loadTrader,
 } from "./helpers";
 
@@ -42,6 +43,10 @@ function loadOrStubMarket(id: string, timestamp: BigInt): Market {
     market.volume = ZERO_BI;
     market.fills = 0;
     market.participants = 0;
+
+    let global = loadGlobal();
+    global.markets = global.markets + 1;
+    global.save();
   }
   return market as Market;
 }
