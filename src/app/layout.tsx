@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { Inter, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import { SiteFooter } from "@/components/layout/site-footer";
 import { SiteHeader } from "@/components/layout/site-header";
 import { Atmosphere } from "@/components/visual/atmosphere/atmosphere";
@@ -18,6 +19,27 @@ const mono = JetBrains_Mono({
   display: "swap",
 });
 
+// ringo-marketing's secondary face. There it is the whole --font-mono; here it
+// takes the label register — the uppercase micro-labels — while JetBrains stays
+// on hashes and figures, which it is drawn for.
+const supplyMono = localFont({
+  src: "../../public/fonts/PPSupplyMono-Regular.otf",
+  weight: "400",
+  style: "normal",
+  variable: "--font-supply-mono",
+  display: "swap",
+});
+
+// The wordmark's face, same file and same declaration as ringo-marketing.
+// Single face, declared at 800 so `.font-display` matches without synthesising.
+const monument = localFont({
+  src: "../../public/fonts/MonumentExtended-Ultrabold.otf",
+  weight: "800",
+  style: "normal",
+  variable: "--font-monument",
+  display: "swap",
+});
+
 export const metadata: Metadata = {
   title: "Ringo — settled markets, indexed",
   // Never "prediction market" here. This is the line a crawler indexes as the
@@ -32,7 +54,10 @@ export default function RootLayout({
   children,
 }: Readonly<{ children: React.ReactNode }>) {
   return (
-    <html lang="en" className={`${inter.variable} ${mono.variable}`}>
+    <html
+      lang="en"
+      className={`${inter.variable} ${mono.variable} ${supplyMono.variable} ${monument.variable}`}
+    >
       {/* No background on body: the atmosphere canvas paints at -z-10, which
           sits behind body's own background box. The floor is on <html>. */}
       <body className="min-h-screen text-ink antialiased">

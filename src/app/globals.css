@@ -41,6 +41,11 @@
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, "Helvetica Neue",
     Helvetica, Arial, sans-serif;
   --font-mono: var(--font-mono-code), ui-monospace, Menlo, Consolas, monospace;
+  --font-display: var(--font-monument), sans-serif;
+  /* The label register: uppercase micro-labels, not running text and not
+     figures. Separate from --font-mono so hashes and amounts keep JetBrains,
+     which is drawn for exactly that. */
+  --font-label: var(--font-supply-mono), ui-monospace, monospace;
 }
 
 /* Ported from ringo-marketing so both surfaces read as the same product.
@@ -392,6 +397,23 @@ summary,
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
+}
+
+/* The wordmark's setting, copied from ringo-marketing. 800 is the only face
+   loaded, so nothing is synthesised.
+
+   In `components` so a `tracking-*` utility at the call site wins. On their
+   own site it does not: the span is marked `tracking-[0.16em]` but computes to
+   0.02em, because this rule and the utility share a layer and this one lands
+   later. The authored value is the one worth keeping. */
+@layer components {
+  .font-display {
+    font-family: var(--font-display);
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 0.92;
+  }
 }
 
 .holo-line {
