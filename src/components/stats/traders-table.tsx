@@ -17,7 +17,7 @@ const COLUMNS: ColumnNote[] = [
   },
   {
     term: "Staked",
-    note: "Lifetime USDC this address put at risk, counting whichever side of each fill it took.",
+    note: "Lifetime USDC this address put at risk, adding up whichever side of each bet it took. Not the same figure as Staked in the markets table above, which is what the two people put into one single bet.",
   },
   {
     term: "Record",
@@ -25,7 +25,7 @@ const COLUMNS: ColumnNote[] = [
   },
   {
     term: "Last seen",
-    note: "The most recent block this address appeared in, as a fill or as the winner of a resolution.",
+    note: "The last time this address appeared, either taking a side of a bet or winning one. Shown as a distance from today, and measured from the timestamp of the block the event landed in.",
   },
 ];
 

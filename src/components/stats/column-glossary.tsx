@@ -36,9 +36,15 @@ export function ColumnGlossary({ items }: { items: ColumnNote[] }) {
         </svg>
       </summary>
 
-      <dl className="grid gap-x-10 gap-y-3.5 border-t border-hairline-soft px-5 py-4 text-[12.5px] leading-relaxed sm:grid-cols-2">
+      {/*
+        CSS columns, not a two-column grid. A grid ties every row to its tallest
+        note and strands an odd last term beside a hole; columns let each entry
+        take only its own height and balance the flow, so an odd count costs
+        nothing. `break-inside-avoid` keeps a term with its note.
+      */}
+      <dl className="border-t border-hairline-soft px-5 py-4 text-[12.5px] leading-relaxed sm:columns-2 sm:gap-10">
         {items.map((item) => (
-          <div key={item.term}>
+          <div key={item.term} className="mb-3.5 break-inside-avoid">
             <dt className="font-medium text-ink">{item.term}</dt>
             <dd className="mt-0.5 text-muted">{item.note}</dd>
           </div>
