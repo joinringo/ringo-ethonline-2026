@@ -1,0 +1,16 @@
+node_modules/
+dist/
+build/
+generated/
+.env
+.env.*
+!.env.example
+*.log
+.DS_Store
+.idea/
+.vscode/
+coverage/
+
+# subgraph build output
+packages/subgraph/generated/
+packages/subgraph/build/
