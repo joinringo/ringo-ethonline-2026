@@ -11,7 +11,7 @@ export default function Error({
     <main className="mx-auto flex min-h-[70vh] max-w-2xl items-center px-5 py-20 sm:px-6">
       <div className="holo-card w-full rounded-xl">
         <div className="flex items-center gap-2.5 border-b border-hairline px-5 py-3.5">
-          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-side-b" />
+          <span aria-hidden className="h-1.5 w-1.5 rounded-full bg-danger" />
           <p className="text-[12px] font-medium tracking-[0.12em] text-faint uppercase">
             Read failed
           </p>
@@ -28,7 +28,7 @@ export default function Error({
             there is no stale figure to show you instead.
           </p>
 
-          <pre className="mt-6 overflow-x-auto rounded-lg border border-hairline bg-ground/70 px-4 py-3 font-mono text-[13px] leading-relaxed break-words whitespace-pre-wrap text-side-b">
+          <pre className="mt-6 overflow-x-auto rounded-lg border border-hairline bg-ground/70 px-4 py-3 font-mono text-[13px] leading-relaxed break-words whitespace-pre-wrap text-danger">
             {error.message}
           </pre>
 

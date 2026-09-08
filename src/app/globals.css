@@ -32,6 +32,12 @@
   --color-resolved: #2fd48a;
   --color-invalid: #8b93a7;
 
+  /* Failure has to be its own colour. The rose above was standing in for it,
+     which is exactly what the note there says it must not do: a read that fell
+     over and the side B of a call are unrelated things, and a reader who has
+     just learned the key should not meet the same rose meaning error. */
+  --color-danger: #ff6b6b;
+
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, "Helvetica Neue",
     Helvetica, Arial, sans-serif;
   --font-mono: var(--font-mono-code), ui-monospace, Menlo, Consolas, monospace;

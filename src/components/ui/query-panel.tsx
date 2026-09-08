@@ -71,10 +71,12 @@ export function QueryPanel({
     <>
       <div className="flex items-center justify-between gap-3 border-b border-hairline bg-raised/40 px-4 py-2.5">
         <div className="flex min-w-0 items-center gap-2">
+          {/* Window chrome, not data. It used to borrow the side and status
+              colours, which spends a key the tables rely on for decoration. */}
           <span aria-hidden className="flex shrink-0 gap-1.5">
-            <Dot className="bg-side-b/70" />
-            <Dot className="bg-mark/70" />
-            <Dot className="bg-resolved/70" />
+            <Dot className="bg-faint/35" />
+            <Dot className="bg-faint/25" />
+            <Dot className="bg-faint/20" />
           </span>
           <p className="ml-1 truncate font-mono text-[12px] text-muted">
             {filename}

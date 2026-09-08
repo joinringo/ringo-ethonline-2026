@@ -123,20 +123,28 @@ export function MarketsTable({
  * reading 1 and 2 on every row told a reader nothing.
  *
  * The replacement was first written on the assumption that the ratio between
- * the stakes is where the price lives. Measured, that is not
+ * the stakes is where a prediction market's price lives. Measured, that is not
  * what Ringo does: 8,480 of 8,779 fills are the same on both sides. So the
  * common case is stated once as a plain figure, and the coloured split is kept
  * for the rows that differ — the only rows where it says anything, and where it
  * is now the thing that stands out. It is also the one place the Side A / Side
  * B key in the header pays off.
  *
- * Every row is now the same shape — one line of figures over one rail — for two
- * reasons. It puts the Staked figure on the same baseline as the Volume figure
- * beside it, which a one-line cell sitting next to a two-line one cannot do.
- * And it turns the exception into a change of colour rather than a change of
- * shape: the rail is always the true split, drawn faint when the sides are even
- * and at full strength when they are not, so a reader scanning the column finds
- * the rows that differ without reading a single number.
+ * Every row is the same shape — one line of figures over one rail. That is what
+ * puts the Staked figure on the same baseline as the Volume figure beside it,
+ * which a one-line cell sitting next to a two-line one cannot do, and it turns
+ * the exception into a change of colour rather than a change of shape: the rail
+ * is always the true split, faint when the sides are even and at full strength
+ * when they are not, so the rows that differ are findable without reading a
+ * number.
+ *
+ * The column has exactly one vertical anchor, the cell's right edge, and the
+ * header, the last figure and the rail all sit on it. Giving the amounts their
+ * own axis — a fixed slot reserved after the word "each", so "$250.00" and
+ * "$191.88" end at the same x — was tried and is worse: it buys alignment
+ * between two kinds of row that are meant to look different, and pays for it by
+ * pulling every figure off the edge the header and the rails still use. One
+ * anchor everything shares beats two that each hold half the column.
  */
 function SideSplit({
   fill,
@@ -146,7 +154,7 @@ function SideSplit({
   if (fill === null) {
     return (
       <StakedCell rail={<Rail />}>
-        <span className="text-faint">no fill indexed</span>
+        <span className="text-[13px] text-faint">no fill indexed</span>
       </StakedCell>
     );
   }
@@ -164,13 +172,13 @@ function SideSplit({
   // almost every row, and two identical amounts read as a rendering bug.
   //
   // "$250.00 each" rather than "Even": even money is the term of art, and a
-  // reader who has never seen one of these should not have to know it to read a
-  // table. Each is the same fact in a word everyone already has.
+  // reader who has never seen a prediction market should not have to know it to
+  // read a table. Each is the same fact in a word everyone already has.
   if (a === b) {
     return (
       <StakedCell rail={<Rail shareA={shareA} quiet />}>
         <span className="text-muted">${formatUsdc(a)}</span>
-        <Trailer>each</Trailer>
+        <Word>each</Word>
       </StakedCell>
     );
   }
@@ -178,16 +186,22 @@ function SideSplit({
   return (
     <StakedCell rail={<Rail shareA={shareA} />}>
       <span className="text-side-a">${formatUsdc(a)}</span>
-      <span className="mx-1.5 text-faint">vs</span>
+      <Word>vs</Word>
       <span className="text-side-b">${formatUsdc(b)}</span>
-      <Trailer />
     </StakedCell>
   );
 }
 
-/** Figures over a rail, both anchored on the cell's right edge — the same shape
- *  and the same anchor as the Volume cell beside it, so the two columns land on
- *  one baseline and their rails line up. */
+/**
+ * Figures over a rail, both anchored on the cell's right edge — the same shape
+ * and the same anchor as the Volume cell beside it, so the two columns land on
+ * one baseline and their rails line up.
+ *
+ * The figures take the table's own size rather than a step down. They are money
+ * in the column next to money, and a 13px amount beside a 14px one reads as a
+ * different kind of number, not as a quieter one. Weight and colour carry the
+ * hierarchy instead: Volume is medium and full ink, this is regular and muted.
+ */
 function StakedCell({
   children,
   rail,
@@ -197,9 +211,19 @@ function StakedCell({
 }) {
   return (
     <div className="flex flex-col items-end">
-      <span className="tnum text-[13px] whitespace-nowrap">{children}</span>
+      <span className="tnum whitespace-nowrap">{children}</span>
       {rail}
     </div>
+  );
+}
+
+/** The connective tissue between figures — "each", "vs". Set below the figures
+ *  so the eye lands on the money first. */
+function Word({ children }: { children: React.ReactNode }) {
+  return (
+    <span className="mx-1.5 text-[12.5px] font-normal text-faint">
+      {children}
+    </span>
   );
 }
 
@@ -229,22 +253,6 @@ function Rail({ shareA, quiet }: { shareA?: number; quiet?: boolean }) {
         className="block h-full rounded-full bg-side-a"
       />
       <span className="block h-full flex-1 rounded-full bg-side-b" />
-    </span>
-  );
-}
-
-/**
- * A fixed slot after the last figure, reserved whether or not it is filled.
- *
- * Without it the column anchors on whatever ends the line — the word "each" on
- * almost every row, a digit on the split ones — so no two kinds of row put
- * their money in the same place. Reserving the slot gives the amounts one
- * vertical axis and leaves the rails on the cell edge, which is the second.
- */
-function Trailer({ children }: { children?: React.ReactNode }) {
-  return (
-    <span className="ml-1.5 inline-block w-8 text-left text-faint">
-      {children}
     </span>
   );
 }
