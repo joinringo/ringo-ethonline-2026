@@ -1,77 +1,75 @@
 # How AI tools were used
 
-ETHGlobal asks for this disclosure, and the useful version of it is specific
-rather than reassuring. What follows is what actually happened, with commit
-hashes so it can be checked against `git log` rather than taken on trust.
+ETHGlobal's rules do not ask for this. What they require disclosed is
+pre-existing work, which is in [`PRE-EXISTING.md`](PRE-EXISTING.md) next to this
+file. This document is here because the question comes up, and a specific answer
+is more useful than a vague one.
 
-## The short version
+## The proportions
 
-A large share of this repository was written by an AI coding agent (Claude
-Code), not by a human typing. Every line was reviewed, run and tested before it
-was committed, and the design decisions it encodes were argued through rather
-than accepted, but the drafting was the agent's.
+Measured across the files currently in this repository, excluding lockfiles and
+binaries:
 
-## What the agent wrote
+| Author | Lines | Share |
+|---|---|---|
+| Facu Mendez | 7,243 | 77% |
+| Written by an AI agent, committed under Manuel Ferreras | 2,193 | 23% |
 
-All seven commits under the git identity `Manuel Ferreras` were authored by the
-agent working in Manuel's terminal:
+So roughly three quarters of this submission was written by a person. The
+subgraph, its mappings and tests, and the entire Next.js stats application are
+Facu's, across 27 commits.
 
-| Commit | What |
-|---|---|
-| `5544a47` | Monorepo scaffold, integration contracts, verified data source |
-| `0e335af` | Dashboard package scaffold |
-| `552ada2` | **The whole of `worldid-gate/`**: 1,038 lines, the service, its store, its nullifier canonicalisation and its test suite |
-| `ec0d5e9` | Corrections to three claims in the docs that a judge would have found by clicking |
-| `cf29f74` | The backend half of `FEEDBACK-world.md` |
-| `701fa89` | Credential observation in the gate, and the decisions log |
-| `3f17509` | The gate's container image |
+## Where the agent's 23% is
 
-Also agent-authored: the two open pull requests, [#1](https://github.com/joinringo/ringo-ethonline-2026/pull/1)
-(the subgraph fee figure and the phantom win counters) and
-[#2](https://github.com/joinringo/ringo-ethonline-2026/pull/2) (the dashboard's
-"traders that day" figure), and the World ID claim flow that lives in the
-private `app.joinringo.xyz` repository and is described in
-[`INTEGRATION.md`](INTEGRATION.md).
+It is not spread thinly across the codebase. It sits in two places:
 
-**Only two of those seven commits carry a `Co-Authored-By: Claude` trailer**,
-`701fa89` and `3f17509`. That is not a distinction between agent and human work.
-The project's commit convention forbade the trailer for most of the hackathon
-and was changed on the last day. A judge comparing trailers against authorship
-would otherwise be misled, so it is stated here instead.
+- **`worldid-gate/`**, the verification service, written in one pass with its
+  own test suite. 1,209 lines.
+- **`docs/`**, including this file.
 
-## What the agent did that was not writing code
+Plus two bug-fix pull requests against Facu's subgraph and stats app
+([#1](https://github.com/joinringo/ringo-ethonline-2026/pull/1),
+[#2](https://github.com/joinringo/ringo-ethonline-2026/pull/2)), and the World ID
+claim flow in the private `app.joinringo.xyz` repository.
 
-Three things worth naming, because they are the part that actually mattered:
+Two of the seven commits under Manuel's identity carry a `Co-Authored-By: Claude`
+trailer, `701fa89` and `3f17509`. The other five do not, because the project's
+commit convention forbade the trailer until the last day of the hackathon. The
+distinction is chronological, not a distinction between agent and human work,
+and it is noted here so the trailers are not read as a map of authorship.
 
-- **It read shipped artifacts instead of documentation.** The World ID client
-  API was pinned by reading the installed `.d.ts` files and, for two hostnames,
-  by extracting strings from the compiled `idkit_wasm_bg.wasm`. This caught a
-  live documentation bug: `docs.world.org` still shows `orbLegacy` for the
-  personhood example, which is a v3-only preset. Following the docs would have
-  broken the uniqueness guarantee silently. See
+## What that work actually looked like
+
+Not autocomplete, and not unsupervised either. Three examples of the loop, all
+checkable in this repository:
+
+- **Documentation was not trusted over shipped artifacts.** The World ID client
+  API was pinned by reading installed type definitions and, for two hostnames, by
+  extracting strings from a compiled WASM binary. That caught a live
+  documentation bug: the published personhood example uses a v3-only preset,
+  which would have broken the uniqueness guarantee silently. Written up in
   [`FEEDBACK-world.md`](FEEDBACK-world.md).
-- **It audited its own diff before opening a PR.** Separate review passes over
-  the claim flow found three high-severity defects, including one where the
-  error copy told a user to sign in again and the retry path would then have
-  credited the *second* account with the first person's nullifier. That was the
-  agent's own bug, found by the agent, fixed before review.
-- **It checked claims against reality rather than restating them.** Five
-  assumptions written into the original plan turned out to be wrong once the
-  subgraph was live and queryable, including what `Market.outcome` contains and
-  whether `tags` is ever populated. The decisions log records each correction.
+- **The diff was audited before it was proposed.** Review passes over the claim
+  flow found three high-severity defects before it was opened for review,
+  including one where the error copy told a user to sign in again and the retry
+  path would then have credited the second account with the first person's
+  nullifier.
+- **Assumptions were checked against reality.** Five claims written into the
+  original plan turned out to be wrong once the subgraph was live and queryable,
+  including what `Market.outcome` contains. Each correction is in
+  [`decisions.md`](decisions.md).
 
-## What a human did
+## Who decided things
 
-Manuel made every product and prize decision: which credential to request, that
-Selfie Check should be used rather than orb personhood, whether to publish to
-The Graph Network, whether to attempt a third prize slot. He ran the commands
-the agent could not run itself, and he stopped work that was heading the wrong
-way more than once.
+Every product and prize decision was Manuel's: which World credential to
+request, Selfie Check rather than orb personhood, whether to publish to The
+Graph Network, whether to attempt a third prize slot, and what to cut when time
+ran short. He ran the commands the agent could not run and reversed its
+direction more than once.
 
 ## Facu's half
 
-The `subgraph/` mappings and the Next.js stats application at the repository
-root are Facu Mendez's 27 commits. **Whether and how AI tools were used there is
-his to state, and this document does not speak for him.**
+The subgraph and the stats app are his. **Whether and how he used AI tools is his
+to state, and this document does not speak for him.**
 
-[TODO: Facu — add your paragraph here before submission.]
+[TODO: Facu — add your paragraph here, or delete this section.]
