@@ -128,6 +128,22 @@ export function handleRingoResolved(event: RingoResolved): void {
   let market = loadOrStubMarket(id, event.block.timestamp);
   let outcome = abi.resOutcome(event);
 
+  // resolveRingo is caller-idempotent on this contract and does get retried,
+  // so one market can emit RingoResolved many times. Measured on the deployed
+  // index: 245 markets carried more than one resolution, the worst eleven of
+  // them inside a single transaction with an identical winner and amount. The
+  // Resolution rows are an append-only audit trail and all of them are kept,
+  // but the win/loss counters must be credited ONCE per market or the
+  // leaderboard inflates. It did: sum(Trader.wins) was 9,664, exactly the
+  // Resolution row count, against 9,403 resolved markets, so 261 wins were
+  // phantom. Our own ops wallet held 63 of them.
+  //
+  // Guarding on market.resolution rather than market.status is deliberate:
+  // invalidation can overwrite the status, and handler writes are visible to
+  // later handlers in the same block, so this holds even for duplicates that
+  // share a transaction.
+  let firstResolution = market.resolution == null;
+
   let resolution = new Resolution(eventId(event));
   resolution.market = market.id;
   resolution.outcome = outcome;
@@ -141,11 +157,13 @@ export function handleRingoResolved(event: RingoResolved): void {
   market.resolution = resolution.id;
   market.save();
 
-  // Must come after market.save(): both of these read this market's fills back
-  // out of the store through the derived field.
-  let winner = abi.resAddress(event);
-  settleClaim(market, winner);
-  creditRecord(market, winner, event.block.timestamp);
+  if (firstResolution) {
+    // Must come after market.save(): both of these read this market's fills
+    // back out of the store through the derived field.
+    let winner = abi.resAddress(event);
+    settleClaim(market, winner);
+    creditRecord(market, winner, event.block.timestamp);
+  }
 }
 
 /**

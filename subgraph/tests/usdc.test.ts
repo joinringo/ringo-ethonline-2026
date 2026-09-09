@@ -63,12 +63,32 @@ describe("USDC fee transfers", () => {
     );
   });
 
-  test("records a transfer into the fee recipient", () => {
+  test("ignores a transfer into the downstream fee recipient", () => {
+    // This test used to assert the opposite, and it was the over-count.
+    // 0x3eFBc153… is a co-mingled hot EOA and a sweep destination, not a
+    // collection point. Measured on the deployed index, all 5 transfers that
+    // ever reached it were external noise totalling $1,930.20, which was 43.4%
+    // of the whole lifetime fee figure and took the implied take rate to 16.80%
+    // of volume, above the 12.5% contractual maximum.
     let event = createTransfer(FEE_RECIPIENT, 250000);
     handleFeeTransfer(event);
 
-    assert.entityCount("FeeEvent", 1);
-    assert.fieldEquals("FeeEvent", idOf(event), "amount", "250000");
+    assert.entityCount("FeeEvent", 0);
+    assert.entityCount("DailyStat", 0);
+  });
+
+  test("ignores a sweep OUT of the FeesManager", () => {
+    // The double-count guard, which had no test at all: the one test with this
+    // shape used PAYER as the sender both times, so it would have stayed green
+    // if isInternalMove were deleted.
+    let event = createTransfer(FEE_RECIPIENT, 90000);
+    event.parameters[0] = new ethereum.EventParam(
+      "from",
+      ethereum.Value.fromAddress(Address.fromString(FEES_MANAGER))
+    );
+    handleFeeTransfer(event);
+
+    assert.entityCount("FeeEvent", 0);
   });
 
   test("ignores a transfer to any other address", () => {
@@ -82,14 +102,26 @@ describe("USDC fee transfers", () => {
     assert.entityCount("DailyStat", 0);
   });
 
-  test("accumulates fees into the daily stat", () => {
+  test("accumulates only real fees into the daily stat", () => {
+    // Two collections plus one transfer to the downstream recipient. Only the
+    // two collections count. Asserting 1500000 here is what let the day-level
+    // fee figure run 2.3x reality.
+    // logIndex has to be bumped by hand: newMockEvent() hands back the same
+    // transaction hash and logIndex every call, so two transfers built from it
+    // share an eventId and the second silently overwrites the first. Real
+    // transfers in one transaction always differ by logIndex.
     let first = createTransfer(FEES_MANAGER, 1000000);
     handleFeeTransfer(first);
-    let second = createTransfer(FEE_RECIPIENT, 500000);
+    let second = createTransfer(FEES_MANAGER, 500000);
+    second.logIndex = first.logIndex.plus(BigInt.fromI32(1));
     handleFeeTransfer(second);
+    let downstream = createTransfer(FEE_RECIPIENT, 500000);
+    downstream.logIndex = first.logIndex.plus(BigInt.fromI32(2));
+    handleFeeTransfer(downstream);
 
     let day = dayId(first.block.timestamp);
     assert.entityCount("DailyStat", 1);
     assert.fieldEquals("DailyStat", day, "fees", "1500000");
+    assert.entityCount("FeeEvent", 2);
   });
 });

@@ -106,7 +106,9 @@ dataSources:
         - event: Transfer(indexed address,indexed address,uint256)
           handler: handleFeeTransfer
           topic2:
-            # FeesManager 0xF1Ccb04C363F1df8D6081D2e32c70f7a85814E92
+            # FeesManager 0xF1Ccb04C363F1df8D6081D2e32c70f7a85814E92, the only
+            # fee collection point. The downstream recipient
+            # 0x3eFBc153573C469d14846f2Af6Eb1245768C83cE is deliberately NOT
+            # here: it is a co-mingled hot EOA and every transfer that reached
+            # it was external noise. See src/usdc.ts.
             - "0x000000000000000000000000f1ccb04c363f1df8d6081d2e32c70f7a85814e92"
-            # Fee recipient 0x3eFBc153573C469d14846f2Af6Eb1245768C83cE
-            - "0x0000000000000000000000003efbc153573c469d14846f2af6eb1245768c83ce"
