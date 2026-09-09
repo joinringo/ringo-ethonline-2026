@@ -105,7 +105,13 @@ export function createGate({ store, verify = verifyProof, logger = console } = {
       }
 
       const first = db.record(nullifier, result.protocol, payload?.action ?? null);
-      logger.log?.(`[verify] ok protocol=${result.protocol} first_time=${first}`);
+      // The credential list is logged on every success, including when nothing
+      // is enforcing it yet. It is how GATE_REQUIRE_CREDENTIAL gets turned on
+      // from evidence rather than from a guess about World's response shape.
+      logger.log?.(
+        `[verify] ok protocol=${result.protocol} first_time=${first} ` +
+        `credentials=[${(result.credentials ?? []).join(', ')}]`,
+      );
 
       // The nullifier goes back so the claim UI can pass it to the platform's
       // POST /welcome-bonus/claim. It is not a secret: it is derived from the

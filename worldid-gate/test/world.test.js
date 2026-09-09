@@ -102,3 +102,94 @@ test('a malformed payload is refused before any network call', async () => {
   }
   assert.equal(called, false, 'no proof-shaped garbage should reach World');
 });
+
+// ---- credential enforcement -------------------------------------------------
+
+test('reads the credential identifiers World reports', async () => {
+  const res = await verifyProof(
+    { protocol_version: '4.0', action: 'claim-welcome-credit' },
+    ok({
+      success: true,
+      nullifier: '123',
+      results: [{ identifier: 'selfie', success: true, nullifier: '123' }],
+    }),
+  );
+  assert.equal(res.ok, true);
+  assert.deepEqual(res.credentials, ['selfie']);
+});
+
+test('a credential World marked unsuccessful is not counted as presented', async () => {
+  const res = await verifyProof(
+    { protocol_version: '4.0', action: 'claim-welcome-credit' },
+    ok({
+      success: true,
+      nullifier: '123',
+      results: [{ identifier: 'selfie', success: false }],
+    }),
+  );
+  assert.deepEqual(res.credentials, []);
+});
+
+test('an unreadable results field yields no credentials rather than throwing', async () => {
+  for (const results of [undefined, null, 'selfie', {}, [null], [{ identifier: 7 }]]) {
+    const res = await verifyProof(
+      { protocol_version: '4.0', action: 'claim-welcome-credit' },
+      ok({ success: true, nullifier: '123', results }),
+    );
+    assert.equal(res.ok, true, `results=${JSON.stringify(results)} should still verify`);
+    assert.deepEqual(res.credentials, [], `results=${JSON.stringify(results)}`);
+  }
+});
+
+test('with GATE_REQUIRE_CREDENTIAL set, a proof carrying another credential is refused', async () => {
+  config.requiredCredential = 'selfie';
+  try {
+    const res = await verifyProof(
+      { protocol_version: '4.0', action: 'claim-welcome-credit' },
+      ok({
+        success: true,
+        nullifier: '123',
+        results: [{ identifier: 'proof_of_human', success: true }],
+      }),
+    );
+    assert.equal(res.ok, false);
+    assert.equal(res.reason, 'credential_mismatch');
+  } finally {
+    config.requiredCredential = null;
+  }
+});
+
+test('with GATE_REQUIRE_CREDENTIAL set, a response with no readable credential fails closed', async () => {
+  config.requiredCredential = 'selfie';
+  try {
+    const res = await verifyProof(
+      { protocol_version: '4.0', action: 'claim-welcome-credit' },
+      ok({ success: true, nullifier: '123' }),
+    );
+    assert.equal(res.ok, false);
+    assert.equal(res.reason, 'credential_mismatch');
+  } finally {
+    config.requiredCredential = null;
+  }
+});
+
+test('with GATE_REQUIRE_CREDENTIAL set, the matching credential passes', async () => {
+  config.requiredCredential = 'selfie';
+  try {
+    const res = await verifyProof(
+      { protocol_version: '4.0', action: 'claim-welcome-credit' },
+      ok({
+        success: true,
+        nullifier: '123',
+        results: [
+          { identifier: 'proof_of_human', success: true },
+          { identifier: 'selfie', success: true },
+        ],
+      }),
+    );
+    assert.equal(res.ok, true);
+    assert.equal(res.nullifier, '123');
+  } finally {
+    config.requiredCredential = null;
+  }
+});

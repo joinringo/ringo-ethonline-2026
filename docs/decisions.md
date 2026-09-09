@@ -6,14 +6,54 @@ answers from the ETHGlobal Discord land.
 ## Open
 
 - Slot 3: AgentKit or Bazantic. [TODO: Facu]
-- Whether the backend switches its comparables query to `questionId_in`. See
-  `docs/REPLY-manuel.md`.
-- Whether to `graph publish` to the network. Needs a wallet with ETH on
-  Arbitrum One, and a freshly published subgraph has to be picked up by an
-  indexer and resynced 17M blocks before its gateway URL answers anything.
-  Studio is what the app points at until a network endpoint returns real data.
-- The backend must hash: `marketId` is now `keccak256(ringoId)`, not
-  `ringoId`. [TODO: tell Manuel — see `subgraph/docs/queries.md`]
+
+### Closed Sep 9
+
+- **`graph publish`: no.** The Graph's prize text names Subgraph Studio as a
+  qualifying provider, verbatim: "Consume live data from a Graph provider, for
+  example querying Subgraphs with an API key from Subgraph Studio". Publishing
+  to the decentralized network buys no eligibility, and a freshly published
+  subgraph has to be picked up by an indexer and resynced before its gateway URL
+  answers anything at all. Studio stays.
+- **`questionId_in`: no.** `Market.id` is `keccak256(ringoId)` and reaches all
+  10,006 markets; `questionId` reaches 4,771, and in the last 30 days 1,506 of
+  2,584 markets have none. Keying on `questionId` answered "unavailable" for
+  most markets a user could ask about today.
+- **The backend already hashes.** `marketId` is `keccak256(ringoId)`, and the
+  `market_stats` tool computes it with `ethers.keccak256(ringoId)` guarded by an
+  `isHexString(ringoId, 32)` check. Nothing left to tell Manuel.
+- **The World credential is Selfie Check, requested as the v4 `selfie`
+  credential** rather than the `selfieCheckLegacy` preset. That preset has the
+  right name and the wrong protocol: it returns v3 proofs only, and a v3 proof
+  carries a different nullifier for the same person than a v4 one, so accepting
+  it would let one human claim twice while every uniqueness check reported
+  success. Selfie Check is also the credential this feature actually wants: it
+  is an abuse-prevention signal on a free credit, held by far more people than
+  orb personhood, so gating on `proofOfHuman` would have refused most genuine
+  claimants.
+- **The gate now reads which credential World says was presented** and logs it
+  on every verification. Enforcement is one env var, `GATE_REQUIRE_CREDENTIAL`,
+  and it is deliberately unset until a real proof confirms the response shape.
+  Failing closed on an unconfirmed field name is how a working service starts
+  refusing everyone; the log is what turns the flag on from evidence.
+
+### The World relying party, Sep 9
+
+Created through the Developer Portal. These two are public by design; World's
+own example ships them as `NEXT_PUBLIC_` variables.
+
+- App: `app_322c4e29ae1f5d33d0af7feb978c55a7` (production, external, cloud)
+- Relying party: `rp_fcf35b06aa54d927`, managed mode, **registered on-chain on
+  both production and staging**
+- Action: `welcome-credit`, created in both environments. This string must be
+  byte-identical in three places: the Portal action, the gate's
+  `WORLDID_ACTION`, and the web app's. `signRequest` hashes it into the signed
+  message, so a mismatch invalidates the signature rather than merely failing
+  the gate's own check.
+- Verify endpoint: `https://developer.world.org/api/v4/verify/rp_fcf35b06aa54d927`
+
+The RP signing key is **not** in this repo and never will be. It is returned by
+World exactly once at generation and lives in the secrets store.
 
 ### Closed Sep 7, from the chain rather than from the ABI
 

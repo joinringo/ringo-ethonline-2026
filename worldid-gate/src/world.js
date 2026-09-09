@@ -28,7 +28,7 @@ import { config } from './config.js';
 
 /** Everything the caller needs, and nothing that could leak a proof into a log. */
 function fail(reason, detail) {
-  return { ok: false, reason, detail: detail ?? null, nullifier: null, protocol: null };
+  return { ok: false, reason, detail: detail ?? null, nullifier: null, protocol: null, credentials: [] };
 }
 
 export async function verifyProof(payload, fetchImpl = globalThis.fetch) {
@@ -88,5 +88,38 @@ export async function verifyProof(payload, fetchImpl = globalThis.fetch) {
     return fail('rejected', 'response carried no nullifier');
   }
 
-  return { ok: true, reason: null, detail: null, nullifier: body.nullifier, protocol };
+  // Which credential World says was actually presented. A request can ask for
+  // anything; only this says what arrived.
+  const credentials = readCredentials(body);
+
+  if (config.requiredCredential && !credentials.includes(config.requiredCredential)) {
+    return fail(
+      'credential_mismatch',
+      `expected ${config.requiredCredential}, response carried [${credentials.join(', ') || 'nothing readable'}]`,
+    );
+  }
+
+  return {
+    ok: true,
+    reason: null,
+    detail: null,
+    nullifier: body.nullifier,
+    protocol,
+    credentials,
+  };
+}
+
+/**
+ * The successful credential identifiers in a verify response.
+ *
+ * Tolerant on purpose: this is used to OBSERVE what World sends while the
+ * response shape is still being confirmed, so an unexpected field must produce
+ * an empty list rather than throw. It only becomes load-bearing once
+ * `GATE_REQUIRE_CREDENTIAL` is set, and at that point an empty list refuses.
+ */
+export function readCredentials(body) {
+  const results = Array.isArray(body?.results) ? body.results : [];
+  return results
+    .filter(r => r && typeof r.identifier === 'string' && r.success !== false)
+    .map(r => r.identifier);
 }

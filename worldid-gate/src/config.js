@@ -34,6 +34,21 @@ export const config = {
   verifyBaseUrl: str('WORLDID_VERIFY_BASE_URL', 'https://developer.world.org/api/v4/verify'),
   /** The action string the proof must be bound to. */
   action: str('WORLDID_ACTION'),
+
+  /**
+   * Credential the proof must actually carry, e.g. `selfie`.
+   *
+   * Off by default, and that is a deliberate, temporary compromise rather than
+   * a preference. Requesting a credential is a client-side parameter; only
+   * World's response says which credential was really presented, and the exact
+   * shape of that response has not yet been observed against a real proof.
+   * Failing closed on an unconfirmed field name is how a working service starts
+   * refusing everyone, so the gate LOGS the identifiers World returns on every
+   * verification instead. One real proof settles the shape; set this to
+   * `selfie` immediately afterwards and the requirement is enforced rather than
+   * merely requested.
+   */
+  requiredCredential: str('GATE_REQUIRE_CREDENTIAL'),
   verifyTimeoutMs: int('WORLDID_VERIFY_TIMEOUT_MS', 8000),
 
   /**
