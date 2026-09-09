@@ -32,8 +32,14 @@ export type LifetimeTotals = {
   volumeDays: number;
   /** Distinct traders on the most recent day that has any activity. */
   activeTradersToday: number;
-  /** Midnight UTC of that most recent day, or null when nothing is indexed. */
+  /** Midnight UTC of that day, or null when no day has a trader on it. */
   lastActiveDay: string | null;
+  /**
+   * Midnight UTC of the newest indexed row of ANY kind, including a day that
+   * carries only a fee arrival. Distinct from `lastActiveDay`: this answers
+   * "how fresh is the index", that one answers "when did people last trade".
+   */
+  lastIndexedDay: string | null;
 };
 
 /** One bar of the activity chart. Zero-volume days are real days, not gaps. */
@@ -126,7 +132,16 @@ function foldLifetime(days: LifetimeResponse["dailyStats"]): LifetimeTotals {
   // activeTraders is a daily distinct count. Summing it across days would count
   // a trader once per day they showed up, which is a different and much larger
   // number than "how many people trade on Ringo".
-  const mostRecent = days[0];
+  //
+  // The newest ROW is not the newest TRADING day. The subgraph writes a
+  // DailyStat for a fee arrival on its own, with volume 0, fills 0 and
+  // activeTraders 0, and 176 of the indexed days are that shape. Taking
+  // days[0] therefore published "Traders that day: 0" whenever the last thing
+  // the index saw was a fee, which includes every UTC morning before the first
+  // fill of the day. The tile's own hint says "the most recent day with
+  // activity", so this now finds that day. Rows arrive date-descending.
+  const lastTradingDay = days.find((d) => d.activeTraders > 0);
+  const newestRow = days[0];
 
   return {
     volume,
@@ -135,8 +150,11 @@ function foldLifetime(days: LifetimeResponse["dailyStats"]): LifetimeTotals {
     days: days.length,
     feesOnVolumeDays,
     volumeDays,
-    activeTradersToday: mostRecent ? mostRecent.activeTraders : 0,
-    lastActiveDay: mostRecent ? mostRecent.date : null,
+    activeTradersToday: lastTradingDay ? lastTradingDay.activeTraders : 0,
+    lastActiveDay: lastTradingDay ? lastTradingDay.date : null,
+    // Kept separate: "when did the index last see anything at all", which is a
+    // different question and is what the sync-freshness line wants.
+    lastIndexedDay: newestRow ? newestRow.date : null,
   };
 }
 

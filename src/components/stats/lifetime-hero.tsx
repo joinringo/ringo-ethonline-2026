@@ -58,8 +58,8 @@ export function LifetimeHero({
             <SideKey color="bg-side-b" label="Side B · no" />
             <span aria-hidden className="hidden h-3 w-px bg-hairline sm:block" />
             <span>
-              {totals.lastActiveDay
-                ? `Last indexed activity ${formatRelativeDay(totals.lastActiveDay)}`
+              {totals.lastIndexedDay
+                ? `Last indexed activity ${formatRelativeDay(totals.lastIndexedDay)}`
                 : "No indexed activity yet"}
             </span>
           </div>
