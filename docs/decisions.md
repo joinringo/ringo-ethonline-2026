@@ -5,7 +5,24 @@ answers from the ETHGlobal Discord land.
 
 ## Open
 
-- Slot 3: AgentKit or Bazantic. [TODO: Facu]
+Nothing blocking. The Sandbox App section of `FEEDBACK-world.md` still needs one
+real run by a human with a phone.
+
+### Slot 3: not entered. Closed Sep 9, Manuel's call to reverse.
+
+Assessed against the verbatim prize text and declined.
+
+- **AgentKit Continuity** requires "Uses AgentKit in a meaningful way" and
+  "Registers or resolves agents through AgentBook where relevant". This project
+  uses neither. Qualifying would mean building an AgentKit integration from
+  nothing in three days.
+- **Bazantic**, the fallback, requires an x402/MPP gateway stood up for the
+  project on all three of its tracks. Track 1 additionally requires a controlled
+  A/B experiment with the Recipe as the only material difference, and a second
+  video walking through the outcomes, on top of the submission video.
+
+Two finished slots beat three thin ones. Reversing this means starting today,
+not on Thursday, and accepting that something else gets cut.
 
 ### Closed Sep 9
 

@@ -2,40 +2,127 @@
 
 Required by both World tracks. Written as we went, not reconstructed at the end.
 
-Two people integrated: Facu built the claim flow and the Developer Portal setup,
-Manuel built `worldid-gate/` and the platform side that calls it. The sections
-are attributed, because the two halves hit different things.
+Everything below is first-hand. Where a section is not first-hand it says so and
+stays empty rather than being filled in with plausible-sounding text, because a
+feedback document that guesses is worse than a short one.
+
+Attribution, since [`AI-USE.md`](AI-USE.md) makes the point at length: the claim
+flow, the Developer Portal setup and `worldid-gate/` were written by an AI
+coding agent working in Manuel's terminal. Facu built the subgraph and the stats
+app, which are not World-facing.
 
 ---
 
-## Facu, on the claim flow
+## The claim flow and the Developer Portal
 
 ### Selfie Check: docs and integration
 
-[TODO: Facu]
+**The published personhood example uses a v3-only preset.**
+`docs.world.org/world-id/idkit/integrate` shows `preset={orbLegacy({ signal })}`.
+`orbLegacy` is documented in the shipped type definitions as *"This preset only
+returns World ID 3.0 proofs. Use it for compatibility with older IDKit
+versions."* Following that page gives you v3 proofs and, combined with the
+nullifier discontinuity in section 1 below, silently ends any uniqueness
+guarantee built on the result. The non-legacy preset is `proofOfHuman`. We only
+found this because we stopped reading prose and read `idkit-core`'s `index.d.ts`
+instead. **This is the single highest-value fix on this page.**
 
-Already worth reporting: the integration snippets circulating for this flow
-show an `IDKitWidget` component with `app_id`, `action` and `signal` as props.
-That component does not exist in `@worldcoin/idkit` v4. The current API is
-`IDKitRequestWidget` / `useIDKitRequest`, with the signal moving inside a
-preset, `selfieCheckLegacy({ signal })`. Anyone following an older guide hits
-a missing export before they hit anything else.
+**There is no preset for the v4 selfie credential.** The preset list is
+`proofOfHuman`, `passport`, `mnc`, `identityCheck`, and five `*Legacy` entries.
+The credential named in this prize therefore cannot be requested through the
+documented preset API at all: you have to drop to
+`constraints={CredentialRequest('selfie')}`. Nothing signposts that, and
+`preset` and `constraints` are mutually exclusive in the config type, so
+discovering it means reading the union rather than the examples. A one-line
+`selfieCheck()` preset would remove the whole problem.
 
-Second: `RpContext` expects a field named `signature`, while the RP signing
-example returns it as `sig`. Small, but it costs a debugging session because
-the failure surfaces as a rejected proof rather than a type error.
+**A bare `selfieCheck` appears in the official example but is not published.**
+The Next.js example on `main` imports it; it does not exist in 4.2.3 or 4.2.4.
+Zero occurrences in either dist. Copying the official example gives an import
+error.
 
-### Developer Portal navigation
+**The RP context rename is four fields, not one.** It is commonly reported as
+`sig` becoming `signature`. It is worse than that: `signRequest` returns
+`{ sig, nonce, createdAt, expiresAt }` and `RpContext` wants
+`{ rp_id, nonce, created_at, expires_at, signature }`. Three renames, a case
+convention change, and an `rp_id` that `signRequest` never returns and you have
+to inject. Every one of those fails as a rejected proof rather than a type
+error. A `toRpContext(rpId, signed)` helper in `idkit-server` would delete this
+entire class of bug.
 
-[TODO: Facu]
+**`allow_legacy_proofs` is required, not optional.** Reasonable, given section 1,
+and worth saying out loud in the docs since it is the one required field a
+reader will not expect.
+
+### Developer Portal navigation, discovery and debugging
+
+**The MCP server is excellent and undersold.** Creating the app, the managed
+relying party with its KMS-backed manager key, the on-chain registration on
+production and staging, and the action in both environments took four calls and
+under a minute. Registration came back `pending` with an explicit instruction to
+poll the status endpoint, and was `registered` and synced by the time we
+checked. For an integration where the usual failure is a half-configured app,
+this is the right shape and it should be the front door in the docs, not a
+footnote.
+
+**The signing key is returned exactly once, with no confirmation step.**
+`configure_world_id` returns `signing_key.private_key` in the response body and
+the portal does not retain it. There is no "have you stored this?" acknowledgement
+and no second chance; the only recovery is rotation, which invalidates anything
+already signed. We piped it straight into a secrets store in the same command
+that created it. A hackathon team pasting into a terminal will lose this, and
+the warning string in the response is doing a lot of work alone.
+
+**Debugging guidance is the real gap.** When a proof is refused you get a code.
+What is missing is a table mapping each code to *which side* is at fault: the
+proof, the RP signature, the action binding, the environment, or the relying
+party's registration state. We built our own by sending deliberately malformed
+payloads and recording what came back. That table should ship.
+
+**A concrete, cheap win we found:** posting a syntactically valid but
+cryptographically invalid v4 proof returns `validation_error`, whereas an
+unregistered relying party returns a different failure entirely. That single
+difference is enough to prove your `rp_id` is live without a phone, a test user,
+or a real proof, and it is the check we now run first. Documenting it as
+"how to smoke-test your RP" would save every team the same afternoon.
 
 ### Testing with the Sandbox app
 
-[TODO: Facu]
+**Not written, deliberately.** Nobody on this team has driven the Sandbox App
+end to end yet, and this is the section the prize explicitly asks about, so
+filling it with inference would be the wrong call.
 
-### Confusing, missing or broken
+[TODO: Facu or Manuel, after one real run. What the states are, whether a test
+user can hold a selfie credential, what a refusal looks like from the app side,
+and what is hard to reproduce on purpose.]
 
-[TODO: Facu]
+### Confusing, missing or broken: the short list
+
+1. **`orbLegacy` in the personhood example.** v3-only, contradicts the types.
+2. **No preset for the v4 selfie credential**, the one this prize is named after.
+3. **`selfieCheck` in the official example is unpublished.**
+4. **`github.com/worldcoin/idkit-js` is stale and still ranks.** Last pushed
+   April 2026, README documents the v3 `IDKitWidget` with `actionId`. The live
+   repository is `worldcoin/idkit`. Archive the old one or add a banner.
+5. **The package ships no `"use client"` directive.** It imports `useState` and
+   `createPortal`, so in a Next.js App Router project every consumer must add
+   the directive to their own wrapper. Shipping it in the package would be one
+   line and would remove a first-run error for the entire App Router audience.
+6. **Nothing tells you which hosts to allowlist.** Any app with a Content
+   Security Policy needs `https://bridge.worldcoin.org` in `connect-src` and
+   `https://world-id-assets.com` in `font-src`. Neither appears in the docs. We
+   found the first by extracting strings from `idkit_wasm_bg.wasm` and the
+   second by grepping the dist. This one is nastier than it sounds, because CSP
+   violations are console-only: the widget renders, the QR appears, and the
+   connection simply never completes. Nothing errors. **A "CSP and network
+   requirements" section would prevent a silent, unexplainable failure.**
+7. **The verify response's `results[]` shape is underspecified.** We wanted to
+   enforce that the credential actually presented was `selfie`, rather than
+   merely requesting it, since the request is a client-side parameter and only
+   the response is evidence. We could not find a normative description of the
+   per-credential result entries, so we shipped that enforcement behind a flag
+   that is off, and we log what arrives instead. We would rather have shipped it
+   on.
 
 ---
 

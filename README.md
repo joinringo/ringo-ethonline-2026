@@ -20,13 +20,19 @@ takes the other side, and it settles in USDC on Polygon. Live since 2025.
 
 Full disclosure of what predates the hackathon: [`docs/PRE-EXISTING.md`](docs/PRE-EXISTING.md).
 
-## The three prizes
+## The two prizes
 
 | Prize                                                | Requirement                                                                                                                              | Where it is met                                                                                                                                                                                                                                                                                   |
 | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | The Graph — Best AI Tooling (Continuity)             | Use The Graph as a load-bearing part of the project; do meaningful work with the data                                                    | `subgraph/` indexes RingoManager and USDC fee transfers. `subgraph/docs/queries.md` holds the queries the agent's `market_stats` tool answers from, plus the comparable-markets query behind the price suggestion. This app reads every figure it shows from the subgraph — no database fallback. |
-| World — Selfie Check                                 | Uses a Selfie Check credential flow in a meaningful way; treats it as an abuse-prevention signal; shows a working app; feedback document | `worldid-gate/` verifies the proof and stores one nullifier per human. The user-facing claim flow lives in the private app.joinringo.xyz repo, per the field manual; feedback in `docs/FEEDBACK-world.md`. One credit per human, not per X account.                                               |
-| World — AgentKit Continuity _(or Bazantic fallback)_ | [TODO: decide — see `docs/decisions.md`]                                                                                                 | [TODO]                                                                                                                                                                                                                                                                                            |
+| World — Selfie Check                                 | Uses Selfie Check, or a Selfie Check-compatible World ID credential flow, in a meaningful way; treats it as an abuse-prevention signal; shows a working app; feedback document | The claim requests the World ID 4.0 `selfie` credential against relying party `rp_fcf35b06aa54d927`, registered on-chain on production and staging. `worldid-gate/` verifies the proof against World and stores one nullifier per human; a unique index makes a second claim a no-op. Selfie Check is the abuse signal on a free credit: before this, one human with three accounts got three credits. Feedback in [`docs/FEEDBACK-world.md`](docs/FEEDBACK-world.md), including a documentation bug that silently breaks uniqueness. |
+
+A third slot was assessed and deliberately left empty. AgentKit Continuity
+requires using AgentKit and resolving agents through AgentBook, neither of which
+this project does; the Bazantic fallback requires standing up an x402 gateway
+plus a controlled A/B experiment plus a second video. Entering either would have
+meant taking time from the two above in the last three days. Reasoning in
+[`docs/decisions.md`](docs/decisions.md).
 
 ## Architecture
 
