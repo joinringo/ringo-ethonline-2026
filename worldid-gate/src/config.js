@@ -49,6 +49,23 @@ export const config = {
    * merely requested.
    */
   requiredCredential: str('GATE_REQUIRE_CREDENTIAL'),
+
+  /**
+   * Pin verification to exactly ONE protocol version, e.g. "3.0".
+   *
+   * This exists because `GATE_ALLOW_LEGACY_PROOFS` is the wrong tool for a
+   * deployment that has to use legacy proofs. It widens the gate to accept v3
+   * AND v4, and accepting both is precisely what gives one person two
+   * nullifiers and two welcome credits.
+   *
+   * Selfie Check forces the question: World's own docs say the preset
+   * "currently uses World ID 3.0; World ID 4.0 support is not yet available",
+   * so an integration that wants Selfie Check has no v4 option. Pinning to
+   * "3.0" keeps the uniqueness guarantee intact anyway, because every human
+   * then has exactly one nullifier for this relying party and action. One
+   * protocol is safe. Two is not.
+   */
+  requireProtocol: str('GATE_REQUIRE_PROTOCOL'),
   verifyTimeoutMs: int('WORLDID_VERIFY_TIMEOUT_MS', 8000),
 
   /**
@@ -70,5 +87,15 @@ export function configErrors() {
   const errs = [];
   if (!config.rpId) errs.push('WORLDID_RP_ID is unset: POST /verify cannot work.');
   if (!config.action) errs.push('WORLDID_ACTION is unset: POST /verify cannot bind a proof to an action.');
+  if (config.requireProtocol && config.allowLegacyProofs) {
+    errs.push(
+      'GATE_REQUIRE_PROTOCOL and GATE_ALLOW_LEGACY_PROOFS are both set. ' +
+      'The first pins to one protocol and the second widens to two, which is ' +
+      'the state that lets one human hold two nullifiers. Use only the first.',
+    );
+  }
+  if (config.requireProtocol && !['3.0', '4.0'].includes(config.requireProtocol)) {
+    errs.push(`GATE_REQUIRE_PROTOCOL is "${config.requireProtocol}", expected "3.0" or "4.0".`);
+  }
   return errs;
 }

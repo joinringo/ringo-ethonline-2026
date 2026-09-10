@@ -50,6 +50,39 @@ to inject. Every one of those fails as a rejected proof rather than a type
 error. A `toRpContext(rpId, signed)` helper in `idkit-server` would delete this
 entire class of bug.
 
+**Selfie Check is Beta and gated per app, and nothing on the integration path
+says so.** The credentials page carries the sentence "Request access to enable
+Selfie Check (Beta) for your app", but by the time we read it we had built the
+entire flow. What a developer actually experiences is `credential_unavailable`,
+which reads as "this user lacks the credential" and sends you to check the
+user's World App rather than your own app's entitlements. **The Developer Portal
+should say, on the app itself, whether Selfie Check is enabled**, and the error
+for a not-entitled app should differ from the error for a not-credentialed user.
+Those are two completely different problems and today they are the same string.
+
+**The bigger one: Selfie Check is v3-only, and that collides with World's own
+nullifier semantics.** The credentials page says the preset "currently uses
+World ID 3.0; World ID 4.0 support is not yet available", while
+`CredentialRequest('selfie')` ships in the published 4.2.x SDK. So the SDK
+offers a path the service does not support, and a team reading types rather than
+prose, which is what we had to do to avoid the `orbLegacy` trap above, walks
+straight into it.
+
+Follow that through and it becomes structural rather than cosmetic. A v3 proof
+and a v4 proof carry different nullifiers for the same person. Any team building
+a uniqueness guarantee on Selfie Check today is therefore forced onto legacy
+proofs, which is exactly the configuration the discontinuity makes dangerous.
+The two pieces of guidance point in opposite directions and nothing acknowledges
+the tension.
+
+There is a safe answer, and we would have liked to read it rather than derive
+it: **accept exactly one protocol version, not "legacy as well".** Our gate now
+takes `GATE_REQUIRE_PROTOCOL=3.0`, which accepts v3 and refuses v4, instead of
+the `allow_legacy_proofs`-shaped flag that accepts both. One protocol means one
+nullifier per human and the guarantee holds. Two protocols is the failure. That
+distinction deserves to be in the docs, because the obvious flag name leads
+every integrator to the wrong one of the two.
+
 **`allow_legacy_proofs` is required, not optional.** Reasonable, given section 1,
 and worth saying out loud in the docs since it is the one required field a
 reader will not expect.
