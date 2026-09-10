@@ -44,7 +44,7 @@ meant taking time from the two above in the last three days. Reasoning in
            │                                   │
            │ reads                             │ events
            ▼                                   ▼
-   market_stats tool  ◀────queries────  subgraph/  (The Graph Network)
+   market_stats tool  ◀────queries────  subgraph/  (Subgraph Studio)
                                                │
                                                ▼
                                       this app  (market index)

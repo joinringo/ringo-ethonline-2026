@@ -47,8 +47,8 @@ export function LifetimeHero({
         <RevealItem className="mt-5">
           <p className="max-w-[54ch] text-lead leading-relaxed text-muted">
             Markets open when someone replies to a tweet. Two people take
-            opposite sides, USDC settles on Polygon, and a subgraph on The Graph
-            Network indexes the result.
+            opposite sides, USDC settles on Polygon, and a subgraph on The
+            Graph indexes the result.
           </p>
         </RevealItem>
 

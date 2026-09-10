@@ -48,7 +48,7 @@ export const metadata: Metadata = {
   // see the branding doctrine in the webapp repo. "Market" stays the internal
   // noun for an order-book position, which is what the table below shows.
   description:
-    "Every challenge Ringo has settled under a tweet, read from a subgraph on The Graph Network.",
+    "Every challenge Ringo has settled under a tweet, read from a subgraph indexed with The Graph.",
 };
 
 export default function RootLayout({
