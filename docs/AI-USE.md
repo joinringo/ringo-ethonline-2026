@@ -69,7 +69,19 @@ direction more than once.
 
 ## Facu's half
 
-The subgraph and the stats app are his. **Whether and how he used AI tools is his
-to state, and this document does not speak for him.**
+The subgraph and the stats app are his, across 27 commits.
 
-[TODO: Facu — add your paragraph here, or delete this section.]
+Facu reports using AI coding assistants to write code, which is the same
+category of use described above: drafting and iterating on implementation. The
+work that decided how the subgraph behaves is his own and is visible in
+`decisions.md`, where the ABI was recovered from mainnet bytecode after the
+private ABI never arrived, and where three of four guesses about which event
+parameters were indexed turned out to be wrong. Deploying the guess would have
+decoded every amount one word off.
+
+## The short version of all of it
+
+Both halves of this repository were written with AI assistance. A person
+directed it, reviewed it, and made every decision that mattered, and roughly
+three quarters of the lines were typed by Facu rather than generated. We would
+rather say that plainly than let a reader infer it from the commit log.
