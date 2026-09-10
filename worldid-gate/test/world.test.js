@@ -193,3 +193,93 @@ test('with GATE_REQUIRE_CREDENTIAL set, the matching credential passes', async (
     config.requiredCredential = null;
   }
 });
+
+// ---- protocol pinning -------------------------------------------------------
+
+test('pinned to 3.0, a v3 proof is accepted', async () => {
+  config.requireProtocol = '3.0';
+  try {
+    const res = await verifyProof(
+      { protocol_version: '3.0', action: 'claim-welcome-credit' },
+      ok({ success: true, nullifier: '123' }),
+    );
+    assert.equal(res.ok, true);
+    assert.equal(res.protocol, '3.0');
+  } finally {
+    config.requireProtocol = null;
+  }
+});
+
+test('pinned to 3.0, a v4 proof is REFUSED, which is the whole point', async () => {
+  config.requireProtocol = '3.0';
+  try {
+    const res = await verifyProof(
+      { protocol_version: '4.0', action: 'claim-welcome-credit' },
+      ok({ success: true, nullifier: '123' }),
+    );
+    assert.equal(res.ok, false);
+    assert.equal(res.reason, 'protocol_not_accepted');
+  } finally {
+    config.requireProtocol = null;
+  }
+});
+
+test('pinning does not skip the action binding', async () => {
+  config.requireProtocol = '3.0';
+  try {
+    const res = await verifyProof(
+      { protocol_version: '3.0', action: 'some-other-action' },
+      ok({ success: true, nullifier: '123' }),
+    );
+    assert.equal(res.ok, false);
+    assert.equal(res.reason, 'action_mismatch');
+  } finally {
+    config.requireProtocol = null;
+  }
+});
+
+test('pinning does not skip the credential requirement', async () => {
+  config.requireProtocol = '3.0';
+  config.requiredCredential = 'selfie';
+  try {
+    const res = await verifyProof(
+      { protocol_version: '3.0', action: 'claim-welcome-credit' },
+      ok({ success: true, nullifier: '123', results: [{ identifier: 'passport', success: true }] }),
+    );
+    assert.equal(res.ok, false);
+    assert.equal(res.reason, 'credential_mismatch');
+  } finally {
+    config.requireProtocol = null;
+    config.requiredCredential = null;
+  }
+});
+
+test('pinning to 3.0 overrides allowLegacyProofs rather than combining with it', async () => {
+  // The dangerous state is accepting BOTH versions. Pinned means pinned.
+  config.requireProtocol = '3.0';
+  config.allowLegacyProofs = true;
+  try {
+    const res = await verifyProof(
+      { protocol_version: '4.0', action: 'claim-welcome-credit' },
+      ok({ success: true, nullifier: '123' }),
+    );
+    assert.equal(res.ok, false, 'v4 must still be refused when pinned to 3.0');
+  } finally {
+    config.requireProtocol = null;
+    config.allowLegacyProofs = false;
+  }
+});
+
+test('unpinned behaviour is unchanged: v4 accepted, v3 refused', async () => {
+  const v4 = await verifyProof(
+    { protocol_version: '4.0', action: 'claim-welcome-credit' },
+    ok({ success: true, nullifier: '123' }),
+  );
+  assert.equal(v4.ok, true);
+  const v3 = await verifyProof(
+    { protocol_version: '3.0', action: 'claim-welcome-credit' },
+    ok({ success: true, nullifier: '123' }),
+  );
+  assert.equal(v3.ok, false);
+  assert.equal(v3.reason, 'legacy_proof_refused');
+});

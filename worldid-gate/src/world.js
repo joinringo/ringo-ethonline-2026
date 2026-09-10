@@ -38,14 +38,29 @@ export async function verifyProof(payload, fetchImpl = globalThis.fetch) {
   const protocol = typeof payload.protocol_version === 'string' ? payload.protocol_version : null;
   if (protocol === null) return fail('bad_payload', 'protocol_version missing');
 
-  // See config.allowLegacyProofs: a v3 and a v4 proof for the same person carry
-  // different nullifiers, so accepting both spellings of one human defeats the
-  // uniqueness fence entirely.
-  if (protocol === '3.0' && !config.allowLegacyProofs) {
+  // Protocol acceptance, in exactly one of two modes. Both fall through to the
+  // action check and the World call below: a pinned deployment is not a
+  // deployment with fewer checks.
+  if (config.requireProtocol) {
+    // Pinned to one version, so one human has exactly one nullifier whichever
+    // version that is. This is the safe way to run on legacy proofs, and it is
+    // what Selfie Check currently requires: World's docs say the preset
+    // "currently uses World ID 3.0; World ID 4.0 support is not yet available".
+    if (protocol !== config.requireProtocol) {
+      return fail(
+        'protocol_not_accepted',
+        `this gate accepts only protocol_version ${config.requireProtocol}, got ${protocol}`,
+      );
+    }
+  } else if (protocol === '3.0' && !config.allowLegacyProofs) {
+    // Unpinned default. A v3 and a v4 proof for the same person carry different
+    // nullifiers, so accepting both spellings of one human defeats the
+    // uniqueness fence entirely.
     return fail('legacy_proof_refused',
       'protocol_version 3.0 is refused: a legacy proof carries a different nullifier ' +
       'for the same person, which the uniqueness index cannot connect. ' +
-      'Set GATE_ALLOW_LEGACY_PROOFS=true only if you accept that.');
+      'Prefer GATE_REQUIRE_PROTOCOL=3.0, which accepts v3 and refuses v4, over ' +
+      'GATE_ALLOW_LEGACY_PROOFS=true, which accepts both and reintroduces the problem.');
   }
 
   // Bind the proof to the action this deployment expects. Without this check a
