@@ -121,13 +121,46 @@ or a real proof, and it is the check we now run first. Documenting it as
 
 ### Testing with the Sandbox app
 
-**Not written, deliberately.** Nobody on this team has driven the Sandbox App
-end to end yet, and this is the section the prize explicitly asks about, so
-filling it with inference would be the wrong call.
+**We never completed a proof in Sandbox, and the reason is itself the feedback.**
+Production Beta access arrived while we were still getting into the Sandbox
+build, so the end-to-end test happened on production instead. Everything below
+is what we hit on the way there, which is the onboarding rather than the proof
+flow. We are flagging the boundary rather than writing up states we did not
+reach.
 
-[TODO: Facu or Manuel, after one real run. What the states are, whether a test
-user can hold a selfie credential, what a refusal looks like from the app side,
-and what is hard to reproduce on purpose.]
+**The enrolment form takes an Apple Account email and gives you one attempt.**
+We submitted a work address instead of the Apple ID, realised immediately, and
+the form refused a second submission. There is no edit, no delete, and no
+indication of which address was recorded. A TestFlight invite sent to an address
+that is not an Apple Account simply never becomes redeemable, so the failure is
+silent and the only visible symptom is that nothing arrives. **Letting a team
+resubmit, or just showing the address currently on file, would remove this
+entirely.** For a hackathon where enrolment sits in an approval queue, a typo
+costs a day.
+
+**A production-configured QR does not deep-link into the Sandbox build, and the
+failure looks like a broken QR.** We had the Sandbox app installed and scanned
+our QR expecting it to open. The phone opened `world.org/verify`, found no app
+claiming that link, and offered the App Store listing for the official World
+App. Nothing anywhere said "this request is for production and you are holding
+the Sandbox build".
+
+That is worth fixing because the correct mental model is not obvious: Sandbox
+and production are **separate universes with separate deep links**, not two
+modes of one app. The switch is `environment: 'sandbox'` in the IDKit config,
+which is documented, but nothing connects it to this symptom. A developer who
+has just installed the Sandbox build and scans their own QR has no reason to
+suspect an environment mismatch, and "it sent me to the App Store" reads as a
+broken integration rather than a configuration one.
+
+**Two concrete asks.** Make the connect page say which environment a request
+targets when the link fails to resolve. And say plainly in the Sandbox docs that
+an existing integration needs a config change before its QR will open the
+Sandbox build, because the install step alone reads as sufficient.
+
+[TODO: if anyone completes a Sandbox proof before submission, replace this
+section with the states, test-user behaviour and edge cases actually observed.
+We would rather ship the boundary of what we know than invent the rest.]
 
 ### Confusing, missing or broken: the short list
 
