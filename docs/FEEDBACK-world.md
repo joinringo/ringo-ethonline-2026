@@ -1,10 +1,12 @@
 # Feedback for World
 
-Required by both World tracks. Written as we went, not reconstructed at the end.
+Feedback for the World Selfie Check prize. Observations were recorded during
+September 7–13, 2026; references to documentation describe what we encountered
+then. We are not entering AgentKit.
 
-Everything below is first-hand. Where a section is not first-hand it says so and
-stays empty rather than being filled in with plausible-sounding text, because a
-feedback document that guesses is worse than a short one.
+Observations combine the team's device testing with AI-assisted investigation
+of SDK artifacts, API responses and documentation. See [AI-USE.md](AI-USE.md).
+Sandbox coverage is limited to the onboarding attempts described below.
 
 Attribution, since [`AI-USE.md`](AI-USE.md) makes the point at length: the claim
 flow, the Developer Portal setup and `worldid-gate/` were written by an AI
@@ -126,7 +128,8 @@ Production Beta access arrived while we were still getting into the Sandbox
 build, so the end-to-end test happened on production instead. Everything below
 is what we hit on the way there, which is the onboarding rather than the proof
 flow. We are flagging the boundary rather than writing up states we did not
-reach.
+reach. Here, production means World's production verification service; the
+Ringo claim and credit demonstration ran in Ringo dev.
 
 **The enrolment form takes an Apple Account email and gives you one attempt.**
 We submitted a work address instead of the Apple ID, realised immediately, and
@@ -158,9 +161,9 @@ targets when the link fails to resolve. And say plainly in the Sandbox docs that
 an existing integration needs a config change before its QR will open the
 Sandbox build, because the install step alone reads as sufficient.
 
-[TODO: if anyone completes a Sandbox proof before submission, replace this
-section with the states, test-user behaviour and edge cases actually observed.
-We would rather ship the boundary of what we know than invent the rest.]
+We did not observe completed Sandbox proof states, test-user behavior or
+post-proof edge cases. The recorded successful Selfie Check used World App
+after production Beta access became available.
 
 ### Confusing, missing or broken: the short list
 
@@ -186,9 +189,10 @@ We would rather ship the boundary of what we know than invent the rest.]
    enforce that the credential actually presented was `selfie`, rather than
    merely requesting it, since the request is a client-side parameter and only
    the response is evidence. We could not find a normative description of the
-   per-credential result entries, so we shipped that enforcement behind a flag
-   that is off, and we log what arrives instead. We would rather have shipped it
-   on.
+   per-credential result entries, so we initially logged the identifiers while
+   confirming the response shape. The final demo deployment sets
+   `GATE_REQUIRE_CREDENTIAL` to `selfie` and refuses a missing or mismatched
+   credential. Documenting that shape would have removed the initial uncertainty.
 
 ---
 
@@ -219,9 +223,10 @@ guarantee is silently gone.
 The two facts are documented separately and correctly. What is missing is the
 sentence that joins them: *turning on legacy proofs means one human can hold two
 nullifiers, so do not do it if the nullifier gates anything unique.* We ended up
-enforcing this in our own service, which refuses `protocol_version: "3.0"`
-unless an operator opts in explicitly and gets a warning at boot. We would
-rather the SDK had told us.
+enforcing this with an explicit protocol pin. The final demo requires
+`protocol_version: "3.0"` and refuses v4; an unpinned gate still refuses v3 by
+default. We would rather the SDK had explained the distinction between pinning
+one version and accepting both.
 
 There is also a smaller version of the same trap: choosing the
 `selfieCheckLegacy` preset and setting `allow_legacy_proofs: false` are in
@@ -276,7 +281,7 @@ to them is the problem.
   server-held key, in line with OAuth client secrets and WebAuthn RP keys, means
   a leaked app id alone is not enough to forge a request. The docs are clear that
   the key never goes near client code. We chose not to implement the signing
-  ourselves and to call `SignRequest` from `@worldcoin/idkit-server` instead,
+  ourselves and to call `signRequest` from `@worldcoin/idkit-server` instead,
   precisely because that boundary is well drawn.
 - **The success response carries a real JSON boolean.** We fail closed on
   anything that is not the literal `true`, and having a strict boolean rather

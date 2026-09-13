@@ -3,10 +3,11 @@
 Verifies a World ID proof and answers exactly one question for the Ringo
 platform: **has this human been verified?**
 
-Ringo gives every new user a small credit to place their first prediction. That
+Ringo gives every new user a small credit to place their first challenge. That
 credit was idempotent per **account**, which on X means one person with five
-handles could collect it five times. This service is what makes it one per
-person instead.
+handles could collect it five times. Together with the platform claim indexes,
+this service limits grants per verified nullifier within a fixed relying
+party/action/protocol namespace. Selfie Check is a low-assurance signal.
 
 ## What it is not
 
@@ -108,18 +109,18 @@ considers already seen, and that person is paid twice.
 > written under the old spelling stop colliding with the new one, and every
 > already-verified person could claim again.
 
-### Legacy proofs give one person two nullifiers
+### Keep the proof protocol fixed
 
-`selfieCheckLegacy` is a **v3 preset**, and `allow_legacy_proofs: true` lets
-World App satisfy the request with a v3 proof. A v3 proof and a v4 proof for the
-**same person** carry **different nullifiers**, and no index can connect them.
-Turn that on and one human claims the credit twice while every uniqueness check
-reports success.
+A v3 and a v4 proof can carry different nullifiers for the same person. A
+one-credit fence cannot combine them automatically. The final demo uses the
+`selfieCheckLegacy()` preset in the web app and pins this gate to protocol
+`3.0`, with the `selfie` credential required. It refuses v4 proofs.
 
-So this service **refuses `protocol_version: "3.0"` by default**. Setting
-`GATE_ALLOW_LEGACY_PROOFS=true` re-enables it and logs a warning at boot saying
-exactly what you have just given up. If the claim UI uses a legacy preset, that
-is the decision to revisit, not this flag.
+Without a protocol pin, the default refuses v3. The broad
+`GATE_ALLOW_LEGACY_PROOFS=true` opt-in permits both versions and is deliberately
+unset in the demo. Configuration validation refuses combining that opt-in with
+a protocol pin. Keep the relying party, action and protocol fixed after grants;
+changing them requires a migration plan.
 
 ## Run it
 
@@ -132,7 +133,7 @@ node --env-file=.env src/server.js
 ```
 
 ```bash
-npm test                    # 31 tests, no network
+npm test                    # automated tests, no network
 ```
 
 `GET /status` works with an empty database from the first request: it answers
@@ -144,12 +145,10 @@ claim UI exists.
 
 `POST /rp-signature` returns `501` on purpose.
 
-The RP signature is secp256k1 ECDSA over keccak256, and the signing key is what
-lets anyone forge a request from this app. Hand-rolling the signing of an
-identity request is the wrong call, so that endpoint wants the vendor's signer,
-`SignRequest` from `@worldcoin/idkit-server`, rather than an implementation
-written here. Whoever builds the claim UI should call it there, with the key read
-from a secrets store at runtime and never from a plain environment variable.
+The web app's server-side `/api/worldid/rp-context` route uses `signRequest`
+from `@worldcoin/idkit-server` to create the relying-party context. It obtains
+the signing key from the configured secrets store at runtime. The gate's
+unimplemented endpoint is not part of the recorded claim flow.
 
 The RP signing key is not read by this service and must never be added to its
 environment.
@@ -162,7 +161,7 @@ src/store.js       verified-nullifier store, node:sqlite, PRIMARY KEY as the ind
 src/world.js       the v4 verify call. Fails closed on everything unexpected
 src/config.js      environment, read once at boot
 src/server.js      the three endpoints
-test/              31 tests: canonicalization, the store, the /status wire
+test/              tests: canonicalization, the store, the /status wire
                    contract, and every fail-closed path. No network.
 ```
 
@@ -178,7 +177,9 @@ Names only. Values are per environment and never committed.
 | `WORLDID_VERIFY_TIMEOUT_MS` | `8000` | |
 | `GATE_PORT` | `8787` | |
 | `GATE_DB_PATH` | `./data/nullifiers.db` | |
-| `GATE_ALLOW_LEGACY_PROOFS` | unset | Leave unset. See the trap above |
+| `GATE_REQUIRE_PROTOCOL` | unset | Accept exactly `3.0` or `4.0`; the demo requires `3.0` |
+| `GATE_REQUIRE_CREDENTIAL` | unset | Require this credential in World's response; the demo requires `selfie` |
+| `GATE_ALLOW_LEGACY_PROOFS` | unset | Broad unpinned compatibility mode; leave unset for the demo |
 
 Strict equality against the string `"true"`. `"TRUE"`, `"1"` and `"yes"` all
 mean off, deliberately: an ambiguous value across environments must not

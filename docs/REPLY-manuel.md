@@ -1,5 +1,10 @@
 # Reply to Manuel — Sep 7, after the deploy
 
+> Historical correspondence, preserved for provenance. Endpoint versions,
+> pending tasks and query proposals below describe September 7, not the final
+> submission. Use [SUBMISSION.md](SUBMISSION.md), [INTEGRATION.md](INTEGRATION.md)
+> and the final state in [decisions.md](decisions.md) for current instructions.
+
 The subgraph is live and synced to the chain head. This answers your blocking
 questions with measured values, and corrects two things in your doc that would
 cost a day each if you build on them.

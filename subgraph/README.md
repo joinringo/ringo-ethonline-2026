@@ -12,8 +12,8 @@ the price suggestion in `create_ringo`, and the public stats page.
 | `subgraph.yaml` | done — address, start block, event signatures and `indexed` flags all settled against mainnet |
 | `abis/RingoManager.json` | reconstructed from the chain, not downloaded — see below |
 | `src/*.ts` | done — `graph codegen` and `graph build` both pass |
-| `tests/*.ts` | written, **not executed** — matchstick ships no Windows binary and `graph test -d` needs Docker, which is not installed on this machine |
-| Deploy | done — `0.0.2` in Studio, syncing from block 76393440 with no indexing errors |
+| `tests/*.ts` | Executed on Linux during the September 9 integration review; recorded result: 16/16 passing after the fixes in PR #1. Not rerun for this final documentation-only change |
+| Deploy | Live on Subgraph Studio; use `version/latest`. The September 13 `_meta` check reported no indexing errors |
 
 ## Where the ABI came from
 
@@ -72,7 +72,7 @@ npm run deploy           # graph deploy ringo-polygon
 Deployed and syncing:
 
 ```
-https://api.studio.thegraph.com/query/110471/ringo-polygon/<version>
+https://api.studio.thegraph.com/query/110471/ringo-polygon/version/latest
 ```
 
 That URL is what `SUBGRAPH_URL` in the root `.env.local` points at. A Studio
@@ -90,7 +90,7 @@ on Arbitrum One for gas.
 
 **Two data sources, one of them dangerous.** The USDC data source uses a
 `topic2` filter so the node only ever calls the handler for transfers into the
-two fee addresses. Without it, this subgraph indexes every USDC transfer on
+FeesManager address. Without it, this subgraph indexes every USDC transfer on
 Polygon and never finishes syncing before the deadline. `src/usdc.ts` re-checks
 the address anyway, so a dropped filter degrades to slow rather than wrong.
 
@@ -127,14 +127,18 @@ that market's fills, and a market whose fill predates the start block has no
 fill row to read — so losses undercount where wins do not. The alternative,
 dropping the column, throws away a number that is right most of the time.
 
-**Fees count money coming in, never money moving around.** Both fee addresses
-sit in the `topic2` filter and they also pay each other, so counting every
-inbound transfer books the same fee twice. In resolution `0x31cdbbcd…75bf` the
-escrow sends 0.09 USDC to FeesManager, which forwards 0.035 twice to the fee
-recipient: 0.16 booked against a protocol fee of 0.09. `src/usdc.ts` drops any
-transfer whose sender is itself a fee address.
+**Fees use one collection point.** The final mapping admits only USDC
+transfers into FeesManager and excludes transfers from FeesManager itself.
+The old downstream-recipient accounting double-counted sweeps and included
+unrelated treasury/dust transfers. The correction is in public PR #1 and
+`src/usdc.ts`; it is not an assertion that every historical dashboard value
+has been independently reconciled.
 
-## Reconciliation
+## Historical reconciliation — September 7
+
+These counts and the fee discrepancy below describe the initial deployment.
+They predate the fee-mapping correction in PR #1 and are preserved as
+investigation evidence, not current dashboard totals.
 
 Event counts Manuel read off Polygon mainnet on Sep 7, against the same events
 as this subgraph indexed them. The subgraph was at block 93,413,359 when these

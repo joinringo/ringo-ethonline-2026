@@ -3,10 +3,26 @@
 One line per decision, with the date and who made it. This is also where
 answers from the ETHGlobal Discord land.
 
-## Open
+## Final submission state — September 13
 
-Nothing blocking. The Sandbox App section of `FEEDBACK-world.md` still needs one
-real run by a human with a phone.
+The submitted demo is 3:50. It shows the live Graph integration and a completed
+Selfie Check in World App against the Ringo dev claim flow. The current UI uses
+`selfieCheckLegacy()` with `allow_legacy_proofs: true`; the gate pins
+`GATE_REQUIRE_PROTOCOL` to `3.0` and requires the `selfie` credential. The gate's
+broad legacy opt-in is unset. It accepts one protocol, so the earlier plan to
+request v4 `selfie` is superseded.
+
+[World feedback](FEEDBACK-world.md) records Sandbox onboarding attempts and
+states that no Sandbox proof was completed. This is a documented limitation,
+not an unfinished feedback section. [AI-USE.md](AI-USE.md) discloses assistance
+across both contributors' work and the video edit without inferring human/AI
+percentages from Git author names.
+
+The dated entries below preserve the investigation history. Where a September
+7 or 9 entry differs, this final state and [INTEGRATION.md](INTEGRATION.md) take
+precedence. In particular, the original tag query was replaced with claim-subject
+matching, the verdict field is `claimHeld`, and the final fee mapping admits
+only transfers into FeesManager.
 
 ### Slot 3: not entered. Closed Sep 9, Manuel's call to reverse.
 

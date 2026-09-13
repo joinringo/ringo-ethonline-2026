@@ -7,9 +7,12 @@ architecture diagram, the other side is specified here.
 No secrets appear in this document. Environment variable **names** are listed;
 values are configured per environment and never committed.
 
-Facts below are marked **verified** where they were measured against the live
-subgraph, the live chain, or a running service, and **from the docs** where they
-come from World's published API reference. Nothing here is assumed.
+Final contract review: September 13, 2026. The recorded demo uses Ringo dev,
+World's production Selfie Check flow, `selfieCheckLegacy()`, and a gate pinned to
+protocol 3.0 with the `selfie` credential required. World API version 4 in the
+verification URL is distinct from the accepted proof protocol version 3.0.
+Facts marked **verified** refer to recorded implementation checks; external
+API shapes marked **from the docs** describe the integration reference.
 
 ---
 
@@ -21,7 +24,7 @@ most likely integration mistake, so it comes first.
 IDKit returns the nullifier as `0x`-prefixed hex. The platform's claim endpoint
 accepts **decimal only** and rejects hex with a `400`. They are the same number
 in two spellings, and one side has to convert. `worldid-gate` converts, because
-it is the only component that ever sees an IDKit payload.
+it verifies the IDKit payload before returning the canonical nullifier.
 
 The platform canonicalizes before storing, by stripping leading zeros:
 
@@ -102,8 +105,11 @@ correctly, including a `400` for a malformed nullifier whose body still reads
 
 ### The endpoints the platform does *not* call
 
-`POST /verify` and `POST /rp-signature` are called by the claim UI only. The
-platform never sees a proof.
+The web app proxies proof verification through `POST /api/worldid/verify` to
+the gate's `POST /verify`. RP signing happens in the web app's
+`POST /api/worldid/rp-context` route. The gate's `POST /rp-signature` is an
+unimplemented placeholder returning `501`; the UI does not call it. The
+platform claim endpoint receives the canonical nullifier, not the proof.
 
 ---
 
@@ -147,27 +153,32 @@ Success and failure:
 400/404  { "success": false, "code": …, "detail": … }
 ```
 
-### Legacy proofs are refused, and this is the important part
+### Pin one proof protocol
 
-`selfieCheckLegacy` is a **v3 preset**, and `allow_legacy_proofs: true` lets
-World App satisfy the request with a v3 proof.
+The final Selfie Check flow uses `selfieCheckLegacy()` and
+`allow_legacy_proofs: true` in IDKit. The gate requires protocol `3.0`, requires
+the `selfie` credential in World's verified response, and leaves
+`GATE_ALLOW_LEGACY_PROOFS` unset. A v4 proof is refused by this deployment.
 
-A v3 proof and a v4 proof for the **same person** carry **different
-nullifiers**. No index can connect them. Enable legacy proofs and one human
-holds two identities, claims the credit twice, and every uniqueness check
-reports success the whole way through. That is precisely the failure this
-feature exists to prevent.
+The library default without a protocol pin refuses v3 unless the broad legacy
+opt-in is enabled. That broad opt-in accepts both protocols and must not be
+used for this demo: v3 and v4 can give the same person different nullifiers.
+The pin keeps the namespace fixed instead. Do not rotate the relying party,
+action or accepted protocol after grants without planning the identity and
+credit migration.
 
-So the gate refuses `protocol_version: "3.0"` unless
-`GATE_ALLOW_LEGACY_PROOFS=true` is set explicitly, and it warns at boot when it
-is. If the claim UI uses a legacy preset, that is the decision to revisit, not
-this flag.
+The upstream response above is not the browser's response. The gate returns
+`{ "verified": true, "nullifier": "<canonical decimal>", "first_time": true }`
+on a first accepted proof; `first_time` concerns the gate's verification store,
+not whether the platform has granted a credit.
 
 ### The RP signature
 
-**From the docs.** `rp_context` is `{rpId, nonce, createdAt, expiresAt,
-signature}` and must be built in a backend. The signing algorithm is secp256k1
-ECDSA over keccak256, matching `SignRequest` in `@worldcoin/idkit-server`.
+The web app calls `signRequest` from `@worldcoin/idkit-server` on the server
+and maps its result into IDKit's `rp_context`:
+`{ rp_id, nonce, created_at, expires_at, signature }`. It supplies `rp_id`,
+renames `sig` to `signature`, and renames both timestamp fields. The signing
+algorithm is secp256k1 ECDSA over keccak256.
 
 The RP signing key is what lets anyone forge a request from this app. It never
 goes in client code, and it should be read from a secrets store at runtime
@@ -192,13 +203,32 @@ Content-Type: application/json
 200 { "outcome": "granted", "amount": 5, "balanceAfter": 5 }
 ```
 
+### Read-only account status
+
+```http
+GET /welcome-bonus/status?channelSlug=<optional>
+Authorization: Bearer <dynamic_jwt>
+```
+
+Returns `200 { "claimed": false, "enabled": true }` with `Cache-Control:
+no-store`. `claimed` is per account: a second account belonging to the same
+human is recognized through its nullifier only after verification. `enabled`
+checks configuration and gate prerequisites; it is not a guarantee of newcomer
+eligibility. A missing/unsupported session identity returns disabled status;
+an invalid session token still returns `401`.
+
+Use this GET when the page loads. A nullifier-less claim POST returns
+`verification_required` before reading previous grants, so it cannot answer
+whether an account already claimed.
+
 ### Outcomes
 
 | Response | Meaning | What the UI should do |
 |---|---|---|
 | `granted` | Credit applied | Show the new balance |
 | `already_claimed` | This person already received it, possibly on another of their accounts | Not an error. This is the feature working |
-| `disabled` | The gate is switched off in this environment | Not an error. Expect this before the flag is enabled |
+| `disabled` | The public feature is off, or the welcome-credit configuration is disabled or not payable | Show the unavailable state |
+| `already_a_user` | The wallet has prior orders/credits or a live campaign grant; a failed history lookup also refuses this way | Show the named refusal; retain the proof so a retry need not repeat the selfie |
 | `verification_required` | No nullifier, or the gate did not confirm it | Send the user into the World ID flow |
 | `401` | Missing or invalid session token | Re-authenticate |
 | `422` | The session carries no stable numeric platform id | See below |
@@ -217,7 +247,8 @@ idempotency key, so unknown body fields are rejected outright.
 **X accounts only, for now.** A session authenticated through Kick receives a
 `422`. Kick credits have to land on a different address than the one the session
 exposes, and crediting the wrong one would consume the person's single nullifier
-against a balance they cannot see. Kick users claim through chat instead.
+against a balance they cannot see. Kick keeps its separate chat route; it does not bypass World verification
+while the gate is enabled.
 
 **The `422` also fires when the identity provider does not supply a stable
 numeric account id.** The platform refuses rather than falling back to a handle,
@@ -288,10 +319,10 @@ declaring it. The order is not optional:
    `GET /status?nullifier=1` answers `200 {"verified": false}`.
 5. Only then enable the flag.
 
-Enabling the flag before step 2 produces a system that reports success on every
-claim while enforcing nothing, with a fully green test suite. The platform
-mitigates this by refusing to grant when it cannot see the index, but that is a
-backstop, not a substitute for running the migration.
+Schema declarations alone do not create the required index in this platform.
+The current implementation fails closed when the index is absent, so enabling
+the flag before step 2 makes claims unavailable. Confirming the actual unique
+index remains a deployment prerequisite.
 
 Step 4 is safe to do early: the gate answers `{"verified": false}` correctly
 from an empty database, so the platform can be pointed at it before the claim UI
