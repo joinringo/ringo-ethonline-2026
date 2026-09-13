@@ -9,7 +9,17 @@ takes the other side, and it settles in USDC on Polygon. Live since 2025.
 > an order-book position, which is why it appears throughout the schema and the
 > code.
 
-**Demo video:** [TODO: link after upload]
+**Demo video:** [Watch the 3:50 demo (1080p MP4)](https://misc-file-hosting.s3.us-east-1.amazonaws.com/ringo/ethonline-2026/1d15ae4f26a94cbd9c47b4dfe8bf6538/Ringo-ETHOnline-2026-3m50.mp4)
+
+**Live demos:** [on-chain index](https://ethonline.joinringo.xyz) ·
+[World ID welcome-credit flow](https://app-dev.joinringo.xyz/welcome-credit).
+The claim demo runs on Ringo dev and requires an X-connected Ringo account and
+World App. Existing accounts can be ineligible; a successful verification does
+not guarantee a credit. The video shows the completed flow.
+
+**For judges:** [submission overview and reproduction steps](docs/SUBMISSION.md) ·
+[pre-existing work](docs/PRE-EXISTING.md) · [AI disclosure](docs/AI-USE.md) ·
+[World feedback](docs/FEEDBACK-world.md).
 
 ## Pre-existing vs built this week
 
@@ -25,7 +35,7 @@ Full disclosure of what predates the hackathon: [`docs/PRE-EXISTING.md`](docs/PR
 | Prize                                                | Requirement                                                                                                                              | Where it is met                                                                                                                                                                                                                                                                                   |
 | ---------------------------------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | The Graph — Best AI Tooling (Continuity)             | Use The Graph as a load-bearing part of the project; do meaningful work with the data                                                    | `subgraph/` indexes RingoManager and USDC fee transfers. `subgraph/docs/queries.md` holds the queries the agent's `market_stats` tool answers from, plus the comparable-markets query behind the price suggestion. This app reads every figure it shows from the subgraph — no database fallback. |
-| World — Selfie Check                                 | Uses Selfie Check, or a Selfie Check-compatible World ID credential flow, in a meaningful way; treats it as an abuse-prevention signal; shows a working app; feedback document | The claim requests the World ID 4.0 `selfie` credential against relying party `rp_fcf35b06aa54d927`, registered on-chain on production and staging. `worldid-gate/` verifies the proof against World and stores one nullifier per human; a unique index makes a second claim a no-op. Selfie Check is the abuse signal on a free credit: before this, one human with three accounts got three credits. Feedback in [`docs/FEEDBACK-world.md`](docs/FEEDBACK-world.md), including a documentation bug that silently breaks uniqueness. |
+| World — Selfie Check                                 | Uses Selfie Check, or a Selfie Check-compatible World ID credential flow, in a meaningful way; treats it as an abuse-prevention signal; shows a working app; feedback document | The claim uses `selfieCheckLegacy()` with World ID 3.0 proofs. The demo gate requires protocol `3.0` and the `selfie` credential, verifies with World, and records the canonical nullifier. The platform separately enforces one credit per account and per verified nullifier using unique indexes. This guarantee applies within the fixed relying party, action and protocol from gate activation; Selfie Check is a low-assurance abuse-prevention signal. Selfie Check is the abuse signal on a free credit: before this, one human with three accounts got three credits. Feedback in [`docs/FEEDBACK-world.md`](docs/FEEDBACK-world.md), including a documentation bug that silently breaks uniqueness. |
 
 A third slot was assessed and deliberately left empty. AgentKit Continuity
 requires using AgentKit and resolving agents through AgentBook, neither of which
@@ -63,7 +73,7 @@ inside it.
 | --------------- | -------------------------------------------------------------------- |
 | `src/`          | The Next.js app — the public market index                            |
 | `subgraph/`     | The subgraph. Start here: [`subgraph/README.md`](subgraph/README.md) |
-| `worldid-gate/` | The verification service. Zero dependencies, 31 tests, fails closed  |
+| `worldid-gate/` | The verification service. Zero runtime dependencies, automated tests, fails closed  |
 | `abi/`          | Contract ABIs                                                        |
 | `docs/`         | Disclosure, AI use, decisions log, World feedback                    |
 
